@@ -1,0 +1,29 @@
+{
+    "id": "hexaga",
+    "title": "Hexaga",
+    "description": "Foundry VTT implementation for the Hexaga system.",
+    "version": "0.0.1",
+    "manifest": "",
+    "download": "",
+    "changelog": "",
+    "socket": true,
+    "compatibility": {
+        "minimum": "13",
+        "verified": "14"
+    },
+    "esmodules": ["hexaga.mjs"],
+    "documentTypes": {
+        "Actor": { "hero": {} },
+        "Item": { "heritage": {} }
+    },
+    "languages": [
+        {
+            "lang": "en",
+            "name": "English",
+            "path": "languages/en.json"
+        }
+    ],
+    "packs": [],
+    "packFolders": [],
+    "styles": ["styles/hexaga.css"]
+}

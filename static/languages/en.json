@@ -1,0 +1,11 @@
+{
+    "hexaga": {},
+    "TYPES": {
+        "Actor": {
+            "hero": "Hero"
+        },
+        "Item": {
+            "heritage": "Heritage"
+        }
+    }
+}
