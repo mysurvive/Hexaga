@@ -1,14 +1,15 @@
 import { ATTRIBUTE_STRINGS } from "../../../actor/foundation.ts";
-import { ItemHexData, ItemHexSchema } from "../../base/data.ts";
+import { ItemHexData } from "../../base/data.ts";
 
-export class HeritageData extends ItemHexData {
-    static override defineSchema(): HeritageSchema & ItemHexSchema {
-        return { ...ItemHexData.defineSchema(), ...defineHeritageSchema() };
+export class HeritageData extends ItemHexData<HeritageSchema> {
+    static override defineSchema(): HeritageSchema {
+        return defineHeritageSchema();
     }
 }
 
 const defineHeritageSchema = () => {
     return {
+        ...ItemHexData.defineSchema(),
         improvements: new fields.SchemaField({
             attributes: new fields.SchemaField({
                 choices: new fields.ArrayField(new fields.StringField(), {
@@ -28,5 +29,3 @@ const defineHeritageSchema = () => {
 };
 
 type HeritageSchema = ReturnType<typeof defineHeritageSchema>;
-export interface HeritageData
-    extends ItemHexData, foundry.data.fields.SchemaField.InitializedData<HeritageSchema & ItemHexSchema> {}

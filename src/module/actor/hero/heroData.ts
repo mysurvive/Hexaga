@@ -1,12 +1,12 @@
 import { HEXAGACONFIG } from "../../../config/index.ts";
 import { HitpointStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
 import { ATTRIBUTE_GROUP_MAPS } from "../foundation.ts";
-import { ActorHexData, ActorHexSchema } from "../base/baseActorData.ts";
+import { ActorHexData, defineActorSchema } from "../base/baseActorData.ts";
+import { HeritageData } from "../../item/character-options/heritage/data.ts";
 
-export class HeroData extends ActorHexData {
-    static override defineSchema() {
-        const schema = { ...super.defineSchema(), ...defineHeroSchema() };
-        return schema;
+export class HeroData extends ActorHexData<HeroSchema> {
+    static override defineSchema(): HeroSchema {
+        return defineHeroSchema();
     }
 
     get unspentAttributePoints() {
@@ -101,9 +101,10 @@ export class HeroData extends ActorHexData {
 
 const defineHeroSchema = () => {
     return {
+        ...defineActorSchema(),
         level: new fields.NumberField({ nullable: false, required: true, initial: 1 }),
         options: new fields.SchemaField({
-            heritage: new fields.SchemaField({}),
+            heritage: new fields.EmbeddedDataField(HeritageData),
         }),
         improvements: new fields.SchemaField({
             abilities: new fields.SchemaField({
@@ -119,5 +120,3 @@ const defineHeroSchema = () => {
 };
 
 type HeroSchema = ReturnType<typeof defineHeroSchema>;
-export interface HeroData
-    extends ActorHexData, foundry.data.fields.SchemaField.InitializedData<HeroSchema & ActorHexSchema> {}

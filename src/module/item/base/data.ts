@@ -1,6 +1,6 @@
 import { RuleElementData } from "../../system/ruleElement/data.ts";
 
-export class ItemHexData extends foundry.abstract.TypeDataModel<ItemHexSchema, Item> {
+export class ItemHexData<Schema extends ItemHexSchema> extends foundry.abstract.TypeDataModel<Schema, Item> {
     static override defineSchema(): ItemHexSchema {
         return defineItemSchema();
     }

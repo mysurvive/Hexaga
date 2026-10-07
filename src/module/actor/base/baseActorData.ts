@@ -1,6 +1,6 @@
 import { ActorHex } from "./baseActor.ts";
 
-export class ActorHexData extends foundry.abstract.TypeDataModel<ActorHexSchema, ActorHex> {
+export class ActorHexData<Schema extends ActorHexSchema> extends foundry.abstract.TypeDataModel<Schema, ActorHex> {
     static override defineSchema(): ActorHexSchema {
         return defineActorSchema();
     }
@@ -15,7 +15,7 @@ const defineAttributeSchema = () => {
     };
 };
 
-const defineActorSchema = () => {
+export const defineActorSchema = () => {
     return {
         attributes: new fields.SchemaField({
             physique: new fields.SchemaField(defineAttributeSchema()),

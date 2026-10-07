@@ -31,4 +31,11 @@ export class HeritageSheet extends ItemSheetHex {
         }
         return partContext;
     }
+
+    protected override async _onRender(
+        context: DeepPartial<ItemSheetV2.RenderContext>,
+        options: DeepPartial<ItemSheetV2.RenderOptions>,
+    ): Promise<void> {
+        super._onRender(context, options);
+    }
 }
