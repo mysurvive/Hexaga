@@ -12,6 +12,12 @@ export function registerHandlebarsHelpers(): void {
                 gt: function (l: unknown, r: unknown) {
                     return Number(l) > Number(r);
                 },
+                lt: function (l: unknown, r: unknown) {
+                    return Number(l) < Number(r);
+                },
+                lte: function (l: number, r: number) {
+                    return Number(l) <= Number(r);
+                },
                 or: function (l: unknown, r: unknown) {
                     return l || r;
                 },
@@ -34,5 +40,13 @@ export function registerHandlebarsHelpers(): void {
 
     Handlebars.registerHelper("key", function (opts) {
         return opts.data.key ?? opts.data.root.key;
+    });
+
+    Handlebars.registerHelper("stringify", function (context) {
+        try {
+            return JSON.stringify(context, null, 2);
+        } catch (error) {
+            return `[JSON Stringify Error]: ${error}`;
+        }
     });
 }

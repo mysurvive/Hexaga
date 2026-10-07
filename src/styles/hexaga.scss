@@ -1,8 +1,91 @@
-//test
-target {
-    actor {
-        div {
-            color: red;
+@use "./sheets/actor/actor-sheet.scss";
+@use "./chat/testRoll.scss";
+@use "./sheets/item/item-sheet.scss";
+
+.focus-box-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    flex-shrink: 0;
+
+    &.large {
+        height: 100px;
+        width: 100px;
+        outline: 3px solid white;
+        .focus-content {
+            font-size: 30px;
+        }
+        .focus-label {
+            font-size: 20px;
         }
     }
+
+    &.medium {
+        height: 50px;
+        width: 50px;
+        outline: 2px solid white;
+        .focus-content {
+            font-size: 20px;
+        }
+    }
+
+    &.small {
+        height: 28px;
+        width: 28px;
+        outline: 1px solid white;
+        .focus-content {
+            font-size: 15px;
+        }
+    }
+
+    .focus-label {
+        position: absolute;
+        text-align: center;
+        top: 0px;
+    }
+
+    .focus-content {
+        font-weight: bold;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+
+.flex {
+    display: flex;
+}
+.flex-row {
+    flex-direction: row;
+}
+.flex-col {
+    flex-direction: column;
+}
+.align-center {
+    align-items: center;
+}
+.margin-5 {
+    margin: 5px;
+}
+.margin-bottom-5 {
+    margin-bottom: 5px;
+}
+.pad-5 {
+    padding: 5px;
+}
+.full-width {
+    width: 100%;
+}
+.outline-thin {
+    outline: 1px solid white;
+}
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }

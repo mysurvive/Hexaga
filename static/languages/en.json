@@ -1,5 +1,81 @@
 {
-    "hexaga": {},
+    "hexaga": {
+        "actor": {
+            "hero": {
+                "sheet": {
+                    "tabs": {
+                        "character": "Character",
+                        "items": "Items",
+                        "aspects": "Aspects",
+                        "spells": "Spells",
+                        "improvements": "Improvements"
+                    }
+                }
+            }
+        },
+        "attributeGroups": {
+            "physical": {
+                "label": "Physical"
+            },
+            "mental": {
+                "label": "Mental"
+            },
+            "personality": {
+                "label": "Personality"
+            }
+        },
+        "attributes": {
+            "label": "Attributes",
+            "physique": { "label": "Physique" },
+            "deftness": { "label": "Deftness" },
+            "wit": { "label": "Wit" },
+            "acumen": { "label": "Acumen" },
+            "will": { "label": "Will" },
+            "ego": { "label": "Ego" }
+        },
+        "aspects": {
+            "label": "Aspects"
+        },
+        "expertise": {
+            "label": "Expertise"
+        },
+        "item": {
+            "sheet": {
+                "tabs": {
+                    "description": "Description",
+                    "config": "Config",
+                    "foundational": "Foundational"
+                }
+            }
+        },
+        "hitpoints": {
+            "label": "Hitpoints",
+            "shortLabel": "HP"
+        },
+        "ruleElements": {
+            "FlatModifier": { "label": "Flat Modifier" }
+        },
+        "skills": {
+            "brawn": { "label": "Brawn" },
+            "striking": { "label": "Striking" },
+            "menace": { "label": "Menace" },
+            "marksmanship": { "label": "Marksmanship" },
+            "legerdemain": { "label": "Legerdemain" },
+            "stealth": { "label": "Stealth" },
+            "knowledge": { "label": "Knowledge" },
+            "arcane": { "label": "Arcane" },
+            "tinker": { "label": "Tinker" },
+            "sense": { "label": "Sense" },
+            "discernment": { "label": "Discernment" },
+            "nature": { "label": "Nature" },
+            "spirituality": { "label": "Spirituality" },
+            "survival": { "label": "Survival" },
+            "empathy": { "label": "Empathy" },
+            "speech": { "label": "Speech" },
+            "command": { "label": "Command" },
+            "occult": { "label": "Occult" }
+        }
+    },
     "TYPES": {
         "Actor": {
             "hero": "Hero"

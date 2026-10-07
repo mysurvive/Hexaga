@@ -1,0 +1,32 @@
+<div class="hexaga-test-roll">
+    <div class="roll-title">
+        {{title}}
+    </div>
+    <hr />
+    <div class="roll-modifiers">
+        {{#each modifierTrace}}
+            <div class="modifier-trace">{{this.label}} {{this.value}}</div>
+        {{/each}}
+    </div>
+    <div class="dice-formula">
+        {{formula}}
+    </div>
+    <div class="pass-label">
+        {{#if passed}}
+            <div class="test-success">
+                Success
+            </div>
+        {{else}}
+            <div class="test-failure">
+                Fail
+            </div>
+        {{/if}}
+    </div>
+    <div class="all-rolls">
+        {{#each diceList}}
+            <div class="die">
+                {{this}}
+            </div>
+        {{/each}}
+    </div>
+</div>

@@ -1,0 +1,10 @@
+<section class="tab {{tabs.items.cssClass}} item-drop" data-group="primary" data-tab="items" data-drop-type="gear">
+    <ul class="item-list">
+        {{#each actor.items as |item|}}
+            <li class="item" data-item-id="{{item.id}}" draggable="true">
+                <img src="{{item.img}}" width="24" height="24" />
+                <span>{{item.name}}</span>
+            </li>
+        {{/each}}
+    </ul>
+</section>

@@ -1,0 +1,56 @@
+.item-config.active {
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .flex {
+        display: flex;
+    }
+    .flex-row {
+        flex-direction: row;
+    }
+    .flex-col {
+        flex-direction: column;
+    }
+    .align-center {
+        align-items: center;
+    }
+    .margin-5 {
+        margin: 5px;
+    }
+    .margin-bottom-5 {
+        margin-bottom: 5px;
+    }
+    .pad-5 {
+        padding: 5px;
+    }
+    .full-width {
+        width: 100%;
+    }
+    .outline-thin {
+        outline: 1px solid white;
+    }
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .btn-sm {
+        height: 24px;
+        width: 24px;
+    }
+
+    #new-rule-element-container {
+        width: 220px;
+        margin-top: 10px;
+        flex-shrink: 0;
+    }
+
+    .rules-scroll-box {
+        overflow-y: auto;
+        min-height: 0;
+    }
+}

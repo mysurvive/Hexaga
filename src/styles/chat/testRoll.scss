@@ -1,0 +1,49 @@
+.hexaga-test-roll {
+    display: flex;
+    flex-direction: column;
+
+    .roll-title {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .dice-formula {
+        display: flex;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .pass-label {
+        display: flex;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        .test-success {
+            color: darkgreen;
+        }
+        .test-failure {
+            color: darkred;
+        }
+    }
+
+    .all-rolls {
+        outline: 1px solid black;
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        padding: 5px;
+        margin: 2px;
+        justify-items: center;
+        align-items: center;
+
+        .die {
+            display: flex;
+            height: 20px;
+            width: 20px;
+            margin: 5px;
+            outline: 1px solid black;
+            justify-content: center;
+            align-items: center;
+        }
+    }
+}

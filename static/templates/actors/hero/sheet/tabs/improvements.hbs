@@ -1,0 +1,14 @@
+<section class="tab {{tabs.improvements.cssClass}}" data-group="primary" data-tab="improvements">
+    <ul>
+        <li class="improvement-item outline-thin item-drop" data-drop-type="heritage">
+            <div class="vertical-label-left">Heritage</div>
+            <div class="{{#unless heritage}}empty{{/unless}}">
+            {{#if heritage}}
+            {{else}}
+            Drag a heritage here!
+            {{/if}}
+            </div>
+        </li>
+        {{#each improvements.taken}}{{/each}}
+    </ul>
+</section>

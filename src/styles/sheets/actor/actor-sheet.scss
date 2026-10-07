@@ -1,0 +1,180 @@
+.actor-header {
+    display: grid;
+    grid-template-columns: repeat(6, 144px);
+
+    .character-portrait {
+        height: 100%;
+        width: 100%;
+
+        grid-column: 1 / 2;
+    }
+
+    .character-basics {
+        grid-column: 2 / 6;
+
+        display: flex;
+        flex-direction: column;
+
+        label {
+            margin-right: 5px;
+        }
+
+        div {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin: 5px 0 5px 0;
+        }
+
+        .character-intrinsic {
+            grid-column: 1 / 6;
+            grid-row: 3;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+
+            #current-hp {
+                width: 40px;
+            }
+        }
+    }
+
+    #character-level {
+        justify-self: center;
+    }
+}
+
+.tab[data-tab="character"].active {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    margin-top: 5px;
+
+    .attribute-group {
+        outline: 2px solid black;
+        height: 320px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: stretch;
+
+        .attribute-group-label {
+            writing-mode: vertical-rl;
+            rotate: 180deg;
+            font-size: 20pt;
+            background-color: rgb(56, 56, 56);
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .attribute-group-body {
+            box-sizing: border-box;
+            min-width: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            overflow: hidden;
+            margin-left: 5px;
+
+            .defenses {
+                display: flex;
+                flex-direction: row;
+                gap: 10px;
+                margin-bottom: 5px;
+                flex-shrink: 0;
+            }
+
+            .attribute-area {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+                flex-grow: 1;
+                min-height: 0;
+                box-sizing: border-box;
+                width: 100%;
+
+                .attribute-content {
+                    display: flex;
+                    flex-direction: row;
+                    width: 100%;
+
+                    .skill-area {
+                        display: flex;
+                        flex-direction: column;
+                        margin-left: 10px;
+                        justify-content: space-around;
+                        width: 100%;
+
+                        .skill-item {
+                            display: grid;
+                            grid-template-columns: 1fr 30px 30px 30px;
+                            gap: 6px;
+                            align-items: center;
+                            white-space: nowrap;
+                            width: 100%;
+
+                            button {
+                                border: 0px;
+                                background: none;
+                                i {
+                                    font-size: 2rem;
+                                }
+                            }
+
+                            button:hover {
+                                i {
+                                    animation: spin 2s linear infinite;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.tab[data-tab="improvements"].active {
+    ul {
+        list-style: none;
+        padding: 0;
+
+        .improvement-item {
+            display: flex;
+            flex-direction: row;
+            height: 150px;
+
+            .vertical-label-left {
+                writing-mode: vertical-rl;
+                rotate: 180deg;
+                font-size: 20pt;
+                background-color: rgb(56, 56, 56);
+                padding: 0 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                white-space: nowrap;
+            }
+
+            .empty {
+                display: flex;
+                justify-content: center;
+                align-content: center;
+                width: 100%;
+                flex-wrap: wrap;
+            }
+        }
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -1,17 +1,24 @@
-import { HeroData } from "./module/actor/hero/data/data.ts";
-import { HeritageData } from "./module/item/heritage/data.ts";
+import { HeroData } from "./module/actor/hero/heroData.ts";
+import { ItemHex } from "./module/item/base/base.ts";
+import { HeritageData } from "./module/item/character-options/heritage/data.ts";
 
 import { registerHandlebarsHelpers } from "./scripts/register-handlebars-helpers.ts";
 import { registerSheets } from "./scripts/register-sheets.ts";
 import { registerTemplates } from "./scripts/register-templates.ts";
 import "./styles/hexaga.scss";
+import { HEXAGACONFIG } from "./config/index.ts";
+import { ActorHex } from "./module/actor/base/baseActor.ts";
 
 Hooks.on("init", () => {
     registerSheets();
     registerTemplates();
     registerHandlebarsHelpers();
 
-    Object.assign(CONFIG.Actor.dataModels, { hero: HeroData });
+    CONFIG.hexaga = HEXAGACONFIG;
 
-    Object.assign(CONFIG.Item.dataModels, { heritage: HeritageData });
+    CONFIG.Actor.dataModels["hero"] = HeroData;
+    CONFIG.Item.dataModels["heritage"] = HeritageData;
+
+    CONFIG.Actor.documentClass = ActorHex;
+    CONFIG.Item.documentClass = ItemHex;
 });
