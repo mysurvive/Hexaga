@@ -1,10 +1,7 @@
 import { ItemHex } from "../../item/base/base.ts";
 
-export class RuleElementData<TItem extends ItemHex = ItemHex> extends foundry.abstract.DataModel<
-    BaseRuleElementSchema,
-    TItem
-> {
-    declare parent: TItem;
+export class RuleElementData extends foundry.abstract.DataModel<BaseRuleElementSchema, ItemHex> {
+    declare parent: ItemHex;
     static override defineSchema(): BaseRuleElementSchema {
         return defineRuleElementSchema();
     }

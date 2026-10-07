@@ -1,5 +1,4 @@
 import { HEXAGACONFIG } from "../../../config/index.ts";
-import { HeritageData } from "../../item/character-options/heritage/data.ts";
 import { HitpointStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
 import { ATTRIBUTE_GROUP_MAPS } from "../foundation.ts";
 import { ActorHexData, ActorHexSchema } from "../base/baseActorData.ts";

@@ -1,8 +1,7 @@
 import { ATTRIBUTE_STRINGS } from "../../../actor/foundation.ts";
-import { ItemHex } from "../../base/base.ts";
 import { ItemHexData, ItemHexSchema } from "../../base/data.ts";
 
-export class HeritageData extends foundry.abstract.TypeDataModel<HeritageSchema, ItemHex> {
+export class HeritageData extends ItemHexData {
     static override defineSchema(): HeritageSchema & ItemHexSchema {
         return { ...ItemHexData.defineSchema(), ...defineHeritageSchema() };
     }
@@ -29,3 +28,5 @@ const defineHeritageSchema = () => {
 };
 
 type HeritageSchema = ReturnType<typeof defineHeritageSchema>;
+export interface HeritageData
+    extends ItemHexData, foundry.data.fields.SchemaField.InitializedData<HeritageSchema & ItemHexSchema> {}

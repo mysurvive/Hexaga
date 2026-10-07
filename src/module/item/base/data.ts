@@ -1,6 +1,4 @@
-import { ConfiguredItem } from "fvtt-types/configuration";
 import { RuleElementData } from "../../system/ruleElement/data.ts";
-import { ItemHex } from "./base.ts";
 
 export class ItemHexData extends foundry.abstract.TypeDataModel<ItemHexSchema, Item> {
     static override defineSchema(): ItemHexSchema {
