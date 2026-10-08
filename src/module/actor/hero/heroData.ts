@@ -1,8 +1,9 @@
 import { HEXAGACONFIG } from "../../../config/index.ts";
 import { HitpointStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
 import { ATTRIBUTE_GROUP_MAPS } from "../foundation.ts";
-import { ActorHexData, defineActorSchema } from "../base/baseActorData.ts";
+import { ActorHexData } from "../base/baseActorData.ts";
 import { HeritageData } from "../../item/character-options/heritage/data.ts";
+import { ItemHex } from "../../item/base/base.ts";
 
 export class HeroData extends ActorHexData<HeroSchema> {
     static override defineSchema(): HeroSchema {
@@ -11,6 +12,10 @@ export class HeroData extends ActorHexData<HeroSchema> {
 
     get unspentAttributePoints() {
         return this.improvements.abilities.allowed - this.improvements.abilities.used;
+    }
+
+    get heritage() {
+        return this.parent.itemTypes.heritage[0] ?? null;
     }
 
     override prepareBaseData(): void {
@@ -40,6 +45,8 @@ export class HeroData extends ActorHexData<HeroSchema> {
         this.parent.skills = {};
         this.parent.rv = {};
         this.parent.intrinsics = {};
+
+        this.options.heritage = this.parent.itemTypes.heritage[0] ?? null;
 
         // Create Skill Statistics
         const skillsConfig = CONFIG.hexaga?.skills ?? HEXAGACONFIG.skills;
@@ -101,10 +108,10 @@ export class HeroData extends ActorHexData<HeroSchema> {
 
 const defineHeroSchema = () => {
     return {
-        ...defineActorSchema(),
+        ...ActorHexData.defineSchema(),
         level: new fields.NumberField({ nullable: false, required: true, initial: 1 }),
         options: new fields.SchemaField({
-            heritage: new fields.EmbeddedDataField(HeritageData),
+            heritage: new fields.EmbeddedDataField(ItemHex, { nullable: true, persisted: false }), // this thing is a problem right now
         }),
         improvements: new fields.SchemaField({
             abilities: new fields.SchemaField({

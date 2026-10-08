@@ -1,2 +1,17 @@
 <section class="tab {{tabs.config.cssClass}}" data-group="primary" data-tab="description">
+    <div class="description-editor">
+        {{#if editable}}
+            <prose-mirror
+                name="description"
+                button="true"
+                editable="{{editable}}"
+                toggled="false"
+                value="{{description}}"
+            >
+                {{{description}}}
+            </prose-mirror>
+        {{else}}
+            {{{description}}}
+        {{/if}}
+    </div>
 </section>

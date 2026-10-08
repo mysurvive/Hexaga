@@ -5,6 +5,7 @@ const HandlebarsApplicationMixin = foundry.applications.api.HandlebarsApplicatio
 
 import DragDrop = foundry.applications.ux.DragDrop;
 import { DeepPartial } from "fvtt-types/utils";
+import { ItemHex } from "../../item/base/base.ts";
 
 export class ActorSheetHex extends HandlebarsApplicationMixin(ActorSheetV2)<
     ActorSheetV2.RenderContext,
@@ -75,6 +76,10 @@ export class ActorSheetHex extends HandlebarsApplicationMixin(ActorSheetV2)<
         } catch (error) {
             console.error(error);
         }
+    }
+
+    protected makeImprovementChoice(item: ItemHex, choices: string | string[]) {
+        item.setFlag("hexaga", "selections", choices);
     }
 }
 

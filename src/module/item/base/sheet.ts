@@ -9,7 +9,8 @@ export class ItemSheetHex extends HandlebarsApplicationMixin(ItemSheetV2)<
     ItemSheetV2.Configuration,
     ItemSheetV2.RenderOptions
 > {
-    declare activeTab: typeof this.tabGroups;
+    declare activeTab: typeof this.tabGroups | undefined | null;
+
     static override DEFAULT_OPTIONS = {
         window: { resizable: true },
         position: { width: 600, height: 400 },
@@ -66,38 +67,68 @@ export class ItemSheetHex extends HandlebarsApplicationMixin(ItemSheetV2)<
         const partContext = await super._preparePartContext(partId, context, options);
         if (partId === "config") {
             fu.mergeObject(partContext, {
-                rules: this.item.system.rules ?? [],
+                rules: this.document.system.rules ?? [],
                 ruleElements: Object.keys(CONFIG.hexaga.ruleElements),
             });
         }
-        console.log(context.tabs, this.activeTab);
+        if (partId === "description") {
+            fu.mergeObject(partContext, {
+                description: await foundry.applications.ux.TextEditor.implementation.enrichHTML(
+                    this.document.system.description,
+                    { secrets: this.document.isOwner, relativeTo: this.document },
+                ),
+            });
+        }
         return partContext;
     }
 
-    static async onSubmit(
+    protected static async onSubmit(
         this: ItemSheetHex,
         _event: Event,
         _form: HTMLFormElement,
-        _formData: FormData,
+        _formData: foundry.applications.ux.FormDataExtended,
     ): Promise<void> {
-        const target = _event.target as HTMLTextAreaElement;
+        _event.preventDefault();
+        const data = _formData.object;
+        const rules = Array.isArray(data.rules) ? data.rules : [data.rules];
+        data.rules = rules
+            ? rules
+                  .map((r) => {
+                      const validationErrors = RuleElementData.schema.validate(r);
+                      if (!validationErrors) {
+                          return r;
+                      } else {
+                          for (const field in validationErrors.fields) {
+                              ui.notifications.error(`${field} - ${validationErrors.fields[field].message}`);
+                          }
+                          console.error(validationErrors);
+                          return undefined;
+                      }
+                  })
+                  .filter((r) => r !== undefined)
+            : null;
+        data.rules = rules;
+        await this.document.update({ system: data });
+    }
 
-        // Edit rule elements
-        // More robust validation can happen later, but for now this will work
-        const index = Number(target.closest(".title-box")?.getAttribute("data-index"));
-        const rules = this.item.system.rules;
-        if (!isNaN(index) && rules[index]) {
-            const ruleObjects = rules.map((r) => r.toObject());
-            const changedRule = JSON.parse(target.value);
-            const validationErrors = RuleElementData.schema.validate(changedRule);
-            if (!validationErrors) {
-                ruleObjects[index] = changedRule;
-                this.item.system.updateSource({ rules: ruleObjects });
-            } else {
-                for (const field in validationErrors.fields) {
-                    ui.notifications.error(`${field} - ${validationErrors.fields[field].message}`);
+    protected override async _onRender(
+        context: DeepPartial<ItemSheetV2.RenderContext>,
+        options: DeepPartial<ItemSheetV2.RenderOptions>,
+    ): Promise<void> {
+        await super._onRender(context, options);
+
+        // Handle the handlebars mixin nonsense where all tabs get the active class on partial re-render
+        // Honestly? Super jank wtf.
+        if (options.isFirstRender) this.activeTab = { primary: "description" };
+        if (this.activeTab) {
+            const tabs = this.element.querySelectorAll(".tab");
+            const tabToActivate = this.activeTab.primary;
+            for (const tab of tabs) {
+                if (tab && tab.attributes.getNamedItem("data-tab")?.value !== tabToActivate) {
+                    tab.classList.remove("active");
+                } else if (tab.attributes.getNamedItem("data-tab")?.value === tabToActivate) {
+                    tab.classList.add("active");
                 }
-                console.error(validationErrors);
             }
         }
     }

@@ -15,7 +15,7 @@ const defineAttributeSchema = () => {
     };
 };
 
-export const defineActorSchema = () => {
+const defineActorSchema = () => {
     return {
         attributes: new fields.SchemaField({
             physique: new fields.SchemaField(defineAttributeSchema()),

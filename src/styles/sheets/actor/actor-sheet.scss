@@ -138,35 +138,64 @@
 }
 
 .tab[data-tab="improvements"].active {
-    ul {
-        list-style: none;
-        padding: 0;
+    .improvement-item {
+        border: 1px solid white;
+        padding: 10px;
+        max-width: 100%;
 
-        .improvement-item {
+        & .empty {
+            height: 30px;
+            font-weight: bold;
+            align-content: center;
+        }
+
+        .options {
             display: flex;
             flex-direction: row;
-            height: 150px;
-
-            .vertical-label-left {
-                writing-mode: vertical-rl;
-                rotate: 180deg;
-                font-size: 20pt;
-                background-color: rgb(56, 56, 56);
-                padding: 0 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                white-space: nowrap;
-            }
-
-            .empty {
-                display: flex;
-                justify-content: center;
-                align-content: center;
-                width: 100%;
-                flex-wrap: wrap;
-            }
+            justify-content: space-around;
         }
+    }
+
+    .improvement-item summary {
+        display: flex;
+        font-weight: bold;
+        cursor: pointer;
+        list-style: none;
+        height: 20px;
+        align-content: center;
+        justify-content: space-between;
+    }
+
+    .labeled-toggle input[type="radio"] {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    .labeled-toggle .label-button {
+        height: 25px;
+        display: flex;
+        padding: 0px 10px;
+        border: 2px solid white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        font-size: 12px;
+        align-items: center;
+        width: 80px;
+        justify-content: center;
+        text-transform: uppercase;
+    }
+
+    .labeled-toggle input[type="radio"]:checked + .label-button {
+        border-color: gold;
     }
 }
 

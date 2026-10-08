@@ -3,6 +3,10 @@ import { DeepPartial } from "fvtt-types/utils";
 import ItemSheetV2 = foundry.applications.sheets.ItemSheetV2;
 
 export class HeritageSheet extends ItemSheetHex {
+    static override DEFAULT_OPTIONS = {
+        form: { handler: this.onSubmit },
+    } as typeof ItemSheetHex.DEFAULT_OPTIONS;
+
     static override PARTS = {
         ...super.PARTS,
         foundational: { template: "systems/hexaga/templates/items/foundational.hbs", id: "foundational" },
@@ -16,6 +20,23 @@ export class HeritageSheet extends ItemSheetHex {
         },
     };
 
+    protected static override async onSubmit(
+        this: ItemSheetHex,
+        _event: Event,
+        _form: HTMLFormElement,
+        _formData: foundry.applications.ux.FormDataExtended,
+    ): Promise<void> {
+        await super.onSubmit(_event, _form, _formData);
+        const attributeSelections = (_formData.object.attributes as string[]).filter((a) => a !== null);
+        await this.item.update(
+            {
+                system: { improvements: { attributes: { selected: attributeSelections } } },
+            },
+            { render: false },
+        );
+        this.render({ parts: ["description"] });
+    }
+
     protected override async _preparePartContext(
         partId: string,
         context: ItemSheetV2.RenderContext,
@@ -24,18 +45,11 @@ export class HeritageSheet extends ItemSheetHex {
         },
     ): Promise<ItemSheetV2.RenderContext> {
         const partContext = await super._preparePartContext(partId, context, options);
-        if (partId === "foundational") {
+        if (["foundational", "description"].includes(partId)) {
             fu.mergeObject(partContext, {
                 improvements: this.item.system.improvements,
             });
         }
         return partContext;
-    }
-
-    protected override async _onRender(
-        context: DeepPartial<ItemSheetV2.RenderContext>,
-        options: DeepPartial<ItemSheetV2.RenderOptions>,
-    ): Promise<void> {
-        super._onRender(context, options);
     }
 }

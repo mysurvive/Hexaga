@@ -53,4 +53,25 @@
         overflow-y: auto;
         min-height: 0;
     }
+
+    hr {
+        margin-top: 0;
+    }
+    .rule-element-container {
+        margin-top: 10px;
+    }
+}
+
+.foundational-item {
+    outline: 1px solid white;
+    margin-bottom: 5px;
+    padding: 5px;
+    hr {
+        margin-top: 0;
+    }
+    .choices {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+    }
 }

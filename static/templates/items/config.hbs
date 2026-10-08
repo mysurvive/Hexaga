@@ -1,26 +1,26 @@
 <section class="tab {{tabs.config.cssClass}} item-config" data-group="primary" data-tab="config">
     <div class="rules-scroll-box">
-        {{#each rules as |rule|}}
-            <div class="title-box outline-thin margin-5" data-index="{{@key}}">
+        {{#each rules as |rule index|}}
+            <div class="title-box outline-thin margin-5" data-index="{{index}}">
                 <span class="title pad-5">
                     {{localize (concat "hexaga.ruleElements." rule.key ".label")}}
-                    <button class="btn-sm" data-action="removeRuleElement"><i
+                    <button class="btn-sm" type="button" data-action="removeRuleElement"><i
                             class="fa-solid fa-trash-can"
                         ></i></button>
                 </span>
-                <textarea class="full-width">{{stringify rule}}</textarea>
+                <textarea class="full-width" name="rules" data-dtype="JSON">{{stringify rule}}</textarea>
             </div>
         {{/each}}
     </div>
     <div class="flex flex-col" id="new-rule-element-container">
         <label for="new-rule-element">Create a new Rule Element</label>
         <div class="flex flex-row align-center">
-            <select class="margin-5" name="rule-element" id="new-rule-element">
+            <select class="margin-5" id="new-rule-element">
                 {{#each ruleElements}}
                     <option value="{{this}}">{{localize (concat "hexaga.ruleElements." this ".label")}}</option>
                 {{/each}}
             </select>
-            <button data-action="addRuleElement">+</button>
+            <button type="button" data-action="addRuleElement">+</button>
         </div>
     </div>
 </section>

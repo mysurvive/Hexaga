@@ -8,6 +8,7 @@ export class ItemHexData<Schema extends ItemHexSchema> extends foundry.abstract.
 
 const defineItemSchema = () => {
     return {
+        description: new fields.HTMLField(),
         rules: new fields.ArrayField(new fields.EmbeddedDataField(RuleElementData), { required: true, initial: [] }),
     };
 };

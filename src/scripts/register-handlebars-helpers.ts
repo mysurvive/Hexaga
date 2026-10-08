@@ -49,4 +49,12 @@ export function registerHandlebarsHelpers(): void {
             return `[JSON Stringify Error]: ${error}`;
         }
     });
+
+    Handlebars.registerHelper("includes", function (this: unknown, arrayOrString, value, options) {
+        if (!arrayOrString) return options.inverse(this);
+        if (arrayOrString.includes(value)) {
+            return options.fn(this);
+        }
+        return options.inverse(this);
+    });
 }

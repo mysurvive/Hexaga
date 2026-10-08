@@ -1,14 +1,18 @@
 <section class="tab {{tabs.config.cssClass}}" data-group="primary" data-tab="foundational">
     <div class="foundational-improvements">
-        {{#each improvements as |improvement|}}
+        {{#with improvements.attributes}}
             <div class="foundational-item">
-                <div class="title">{{localize (concat "hexaga." @key ".label")}}</div>
+                <div class="title">{{localize "hexaga.attributes.label"}}</div>
                 <hr />
+                <div class="choices">
                 {{#each choices as |choice|}}
-                    <input type="checkbox" id="{{choice}}" name="{{@../key}}" value="true"/>
-                    <label for="{{choice}}">{{localize (concat "hexaga." @../key "." choice ".label")}}</label>
+                <div class="flex align-center">
+                    <input type="checkbox" id="{{choice}}" name="attributes" value="{{choice}}" {{#includes @root.improvements.attributes.selected (choice)}}checked{{/includes}}/>
+                    <label for="{{choice}}">{{localize (concat "hexaga.attributes." choice ".label")}}</label>
+                </div>
                 {{/each}}
+                </div>
             </div>
-        {{/each}}
+        {{/with}}
     </div>
 </section>

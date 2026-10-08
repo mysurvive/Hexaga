@@ -116,6 +116,7 @@ export class HeroSheet extends ActorSheetHex {
             actor: this.actor,
             tabs: tabsContext,
             attributeGroups: this.prepareAttributeGroups(),
+            options: this.actor.system.options,
         });
         return mergedContext;
     }
