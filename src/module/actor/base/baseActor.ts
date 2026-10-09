@@ -26,30 +26,12 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
         }
     }
 
-    override prepareBaseData(): void {
-        super.prepareBaseData();
-    }
-
     override prepareEmbeddedDocuments(): void {
         super.prepareEmbeddedDocuments();
 
+        this.system.prepareAttributes();
+
         this.synthetics = { modifiers: {} };
-
-        const sourceItems = this.items ?? [];
-        // Stores the breakdown of the data
-        const attributeData: Record<
-            string,
-            { base: number; bonus: number; details: { value: number; label: string }[] }
-        > = {};
-
-        // Loop through items
-        for (const item of sourceItems) {
-            // Loop through item's rules
-            for (const rule of item.system.rules) {
-            }
-
-            this.synthetics = { modifiers: {} };
-        }
     }
 }
 

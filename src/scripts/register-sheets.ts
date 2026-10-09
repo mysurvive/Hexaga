@@ -1,4 +1,4 @@
-import { HeroSheet } from "../module/actor/hero/heroSheet.ts";
+import { HeroSheet } from "../module/actor/hero/HeroSheet.ts";
 import { HeritageSheet } from "../module/item/character-options/heritage/sheet.ts";
 const dsc = foundry.applications.apps.DocumentSheetConfig;
 

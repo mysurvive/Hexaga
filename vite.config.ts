@@ -5,6 +5,7 @@ import * as Vite from "vite";
 import checker from "vite-plugin-checker";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { svelte, vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import packageJSON from "./package.json" with { type: "json" };
 
 const EN_JSON = JSON.parse(fs.readFileSync("./static/languages/en.json", { encoding: "utf-8" }));
@@ -15,7 +16,15 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
     const buildMode = mode === "production" ? "production" : "development";
     const outDir = "dist";
 
-    const plugins = [checker({ typescript: true }), tsconfigPaths()];
+    const plugins = [
+        svelte({
+            emitCss: true,
+            preprocess: vitePreprocess(),
+            hot: buildMode === "development",
+        }),
+        checker({ typescript: true }),
+        tsconfigPaths(),
+    ];
 
     if (buildMode === "production") {
         plugins.push(
@@ -57,6 +66,8 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
                 handleHotUpdate(context) {
                     if (context.file.startsWith(outDir)) return;
 
+                    if (context.file.endsWith(".svelte")) return;
+
                     if (context.file.endsWith("en.json")) {
                         const basePath = context.file.slice(context.file.indexOf("languages/"));
                         console.log(`Updating lang file at ${basePath}`);
@@ -92,7 +103,7 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
         fs.writeFileSync("./vendor.mjs", `/** ${message} */\n`);
     }
 
-    const reEscape = (s: string) => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const reEscape = (s: string) => s.replace(/[-\/\\^\$*+?.()|[\]{}]/g, "\\$&");
 
     return {
         base: command === "build" ? "./" : "/systems/hexaga/",
@@ -116,13 +127,22 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
                 fileName: "hexaga",
             },
             rollupOptions: {
-                external: new RegExp(["(?:", reEscape(".webp"), ")$"].join("")),
+                external: [
+                    new RegExp(["(?:", reEscape(".webp"), ")$"].join("")),
+                    /^@typhonjs-fvtt\/runtime/,
+                    /^#runtime/,
+                ],
                 output: {
                     assetFileNames: "styles/hexaga.css",
                     chunkFileNames: "[name].mjs",
                     entryFileNames: "hexaga.mjs",
                     manualChunks: {
-                        vendor: buildMode === "production" ? Object.keys(packageJSON.dependencies) : [],
+                        vendor:
+                            buildMode === "production"
+                                ? Object.keys(packageJSON.dependencies).filter(
+                                      (dep) => dep !== "@typhonjs-fvtt/runtime",
+                                  )
+                                : [],
                     },
                 },
                 watch: { buildDelay: 100 },
@@ -130,8 +150,13 @@ const config = Vite.defineConfig(({ command, mode }): Vite.UserConfig => {
             target: "es2022",
         },
         server: {
-            port: 30000,
+            port: 30005,
             open: "/game",
+            hmr: {
+                protocol: "ws",
+                host: "localhost",
+                port: 30005,
+            },
             proxy: {
                 "^(?!/systems/hexaga/)": "http://localhost:30000/",
                 "/socket.io": {

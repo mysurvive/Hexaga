@@ -11,7 +11,14 @@ const defineAttributeSchema = () => {
         rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
         label: new fields.StringField({ required: true }),
         group: new fields.StringField({ required: true }),
-        breakdown: new fields.StringField(),
+        mod: new fields.NumberField({ required: true, initial: 0, nullable: false, persistent: false }),
+        breakdown: new fields.ArrayField(new fields.StringField(), {
+            required: true,
+            initial: [],
+            nullable: false,
+            persistent: false,
+        }),
+        total: new fields.NumberField({ required: true, initial: 0, nullable: false, persistent: false }),
     };
 };
 

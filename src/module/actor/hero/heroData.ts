@@ -2,7 +2,6 @@ import { HEXAGACONFIG } from "../../../config/index.ts";
 import { HitpointStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
 import { ATTRIBUTE_GROUP_MAPS } from "../foundation.ts";
 import { ActorHexData } from "../base/baseActorData.ts";
-import { HeritageData } from "../../item/character-options/heritage/data.ts";
 import { ItemHex } from "../../item/base/base.ts";
 
 export class HeroData extends ActorHexData<HeroSchema> {
@@ -103,6 +102,31 @@ export class HeroData extends ActorHexData<HeroSchema> {
             label: "hexaga.hitpoints.label",
             slug: "hp",
         });
+    }
+
+    prepareAttributes(): void {
+        // Initialize the base breakdown
+        for (const attribute of Object.keys(this.attributes)) {
+            const attr = this.attributes[attribute as keyof typeof this.attributes];
+            attr.breakdown.push(`${attr.rank} (Base)`);
+        }
+
+        // Handle attribute modifiers
+        const heritage = this.parent.items.find((i) => i.type === "heritage");
+        if (heritage) {
+            const selection = heritage.getFlag("hexaga", "selections") as keyof typeof this.attributes;
+            if (selection && this.attributes[selection]) {
+                this.attributes[selection].mod++;
+                // Add heritage to the breakdown
+                this.attributes[selection].breakdown.push("1 (Heritage)");
+            }
+        }
+
+        // Get the total value for all attributes
+        for (const attribute of Object.keys(this.attributes)) {
+            const attr = this.attributes[attribute as keyof typeof this.attributes];
+            attr.total = attr.rank + attr.mod;
+        }
     }
 }
 

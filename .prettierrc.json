@@ -1,6 +1,7 @@
 {
     "printWidth": 120,
     "tabWidth": 4,
+    "plugins": ["prettier-plugin-svelte"],
     "overrides": [
         {
             "files": ["*.scss", "*.css"],
@@ -22,6 +23,10 @@
                 "parser": "html",
                 "htmlWhitespaceSensitivity": "ignore"
             }
+        },
+        {
+            "files": "*.svelte",
+            "options": { "parser": "svelte" }
         }
     ]
 }

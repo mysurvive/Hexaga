@@ -1,2 +1,9 @@
+# Normal dev stuff
 node_modules/
 dist/
+
+# Vite HMR files
+index.html
+hexaga.mjs
+vendor.mjs
+/styles/
