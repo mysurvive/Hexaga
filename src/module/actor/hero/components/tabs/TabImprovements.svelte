@@ -19,7 +19,7 @@
     }
 </script>
 
-<section class="hero-tab" data-group="primary" data-tab="improvements">
+<section class="hero-tab">
     <div>
         <div class="title-left">
             <span>Heritage</span>
@@ -32,9 +32,7 @@
                     {#if !heritage.flags?.hexaga?.selections}<span>Improvement Available!</span>{/if}</summary
                 >
                 <div class="content">
-                    {#await window.foundry.applications.ux.TextEditor.enrichHTML( heritage.system.description, { async: true }, )}
-                        <span class="loading-text"><i class="fas fa-spinner fa-spin"></i> Loading...</span>
-                    {:then enrichedHtml}
+                    {#await window.foundry.applications.ux.TextEditor.enrichHTML( heritage.system.description, { async: true }, ) then enrichedHtml}
                         {@html enrichedHtml}
                     {/await}
                     <div class="options">

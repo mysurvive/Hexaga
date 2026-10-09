@@ -2,4 +2,4 @@
     export let actor: ActorHex;
 </script>
 
-<section class="hero-tab" data-group="primary" data-tab="character">Ipsum Lorem - Spells</section>
+<section class="hero-tab">Ipsum Lorem - Spells</section>

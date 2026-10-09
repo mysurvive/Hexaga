@@ -1,9 +1,9 @@
 import { HeroSheet } from "../module/actor/hero/HeroSheet.ts";
-import { HeritageSheet } from "../module/item/character-options/heritage/sheet.ts";
+import { ItemSheetHex } from "../module/item/base/sheet.ts";
 const dsc = foundry.applications.apps.DocumentSheetConfig;
 
 export function registerSheets(): void {
-    dsc.registerSheet(Item, "hexaga", HeritageSheet, {
+    dsc.registerSheet(Item, "hexaga", ItemSheetHex, {
         label: "Heritage",
         types: ["heritage"],
         makeDefault: true,

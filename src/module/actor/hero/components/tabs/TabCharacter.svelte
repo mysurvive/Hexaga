@@ -11,7 +11,7 @@
     }
 </script>
 
-<section class="hero-tab" data-group="primary" data-tab="character">
+<section class="hero-tab">
     {#each Object.entries(ATTRIBUTE_GROUP_MAPS) as [attributeGroup, groupData]}
         <div class="attribute-group">
             <div class="attribute-group-label">
