@@ -3,6 +3,19 @@
 
     $: isEditable = item.isOwner;
     let isEditing = false;
+
+    async function handleNativeSave(event: Event) {
+        const proseMirrorElement = event.target as any;
+        const content = proseMirrorElement.value;
+
+        try {
+            await item.update({ "system.description": content });
+        } catch (error) {
+            console.error("Error editing description", error);
+        }
+
+        isEditing = false;
+    }
 </script>
 
 <section class="item-tab">
@@ -13,10 +26,6 @@
                     <button type="button" class="prose-edit-trigger" on:click={() => (isEditing = true)}>
                         <i class="fas fa-edit"></i> Edit Description
                     </button>
-                {:else}
-                    <button type="button" class="prose-edit-trigger save-btn" on:click={() => (isEditing = false)}>
-                        <i class="fas fa-save"></i> Save & Lock
-                    </button>
                 {/if}
             </div>
         {/if}
@@ -25,9 +34,10 @@
             {#if isEditable && isEditing}
                 <prose-mirror
                     name="system.description"
-                    button="false"
-                    toggled="true"
                     value={item.system?.description ?? ""}
+                    button="true"
+                    toggled="false"
+                    on:change={handleNativeSave}
                 >
                 </prose-mirror>
             {:else}
@@ -64,15 +74,6 @@
 
             &:hover {
                 background: rgba(0, 0, 0, 0.1);
-            }
-
-            &.save-btn {
-                background: rgba(40, 167, 69, 0.1);
-                border-color: rgba(40, 167, 69, 0.3);
-
-                &:hover {
-                    background: rgba(40, 167, 69, 0.2);
-                }
             }
         }
 

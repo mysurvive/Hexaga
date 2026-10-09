@@ -30,6 +30,7 @@ export class ItemSheetHex extends foundry.applications.sheets.ItemSheetV2 {
             target: content,
             props: {
                 item: this.document,
+                sheet: this,
             },
         });
     }

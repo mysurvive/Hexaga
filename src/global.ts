@@ -3,6 +3,7 @@ import { ActorHex } from "./module/actor/base/baseActor.ts";
 import { HeroData } from "./module/actor/hero/heroData.ts";
 import { ItemHex } from "./module/item/base/base.ts";
 import { HeritageData } from "./module/item/character-options/heritage/data.ts";
+import { ProfessionData } from "./module/item/character-options/profession/data.ts";
 
 declare global {
     namespace globalThis {
@@ -45,6 +46,7 @@ declare module "fvtt-types/configuration" {
         };
         Item: {
             heritage: typeof HeritageData;
+            profession: typeof ProfessionData;
         };
     }
 }

@@ -7,6 +7,7 @@
     import TabConfig from "./tabs/TabConfig.svelte";
 
     export let item;
+    export let sheet;
 
     const tabStore = writable("description");
     setContext("activeTab", tabStore);
@@ -20,9 +21,9 @@
 
 <NavTabs {tabs} />
 {#if $tabStore === "description"}
-    <TabDescription {item} />
+    <TabDescription {item} {sheet} />
 {:else if $tabStore === "foundational"}
-    {#if item.type === "heritage"}<TabFoundational {item} />{/if}
+    <TabFoundational {item} />
 {:else if $tabStore === "config"}
     <TabConfig {item} />
 {/if}
