@@ -111,6 +111,11 @@ export class HeroData extends ActorHexData<HeroSchema> {
             attr.breakdown.push(`${attr.rank} (Base)`);
         }
 
+        for (const skill of Object.keys(this.skillData)) {
+            const skl = this.skillData[skill as keyof typeof this.skillData];
+            skl.breakdown.push(`${skl.rank} (Base)`);
+        }
+
         // Handle attribute modifiers
         const heritage = this.parent.items.find((i) => i.type === "heritage");
         if (heritage) {
@@ -119,6 +124,17 @@ export class HeroData extends ActorHexData<HeroSchema> {
                 this.attributes[selection].mod++;
                 // Add heritage to the breakdown
                 this.attributes[selection].breakdown.push("1 (Heritage)");
+            }
+        }
+
+        // Handle base skill modifiers
+        const profession = this.parent.items.find((i) => i.type === "profession");
+        if (profession) {
+            const selection = profession.getFlag("hexaga", "selections") as keyof typeof this.skillData;
+            if (selection && this.skillData[selection]) {
+                this.skillData[selection].mod++;
+                // Add profession to the breakdown
+                this.skillData[selection].breakdown.push("1 (Heritage)");
             }
         }
 

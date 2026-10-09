@@ -33,6 +33,34 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
 
         this.synthetics = { modifiers: {} };
     }
+
+    // Incredibly simplified for the time being
+    async modifyHealth(input: string | number): Promise<void> {
+        const stringInput = String(input).trim();
+        if (!stringInput) return;
+
+        const regex = /([+-])\s*(\d+)/;
+        const match = stringInput.match(regex);
+
+        let finalHp = this.system.intrinsic.hp.current;
+
+        if (match) {
+            const sign = match[1];
+            const amount = Number(match[2]);
+            console.log(sign, amount);
+
+            if (sign === "+") {
+                finalHp += amount;
+            } else {
+                finalHp -= amount;
+            }
+        } else {
+            const absoluteChange = Number(stringInput.replace(/[^\d.-]/g, ""));
+            if (!isNaN(absoluteChange)) finalHp = absoluteChange;
+        }
+        finalHp = Math.clamp(finalHp, 0, this.hp.max);
+        await this.update({ system: { intrinsic: { hp: { current: finalHp } } } });
+    }
 }
 
 type SkillStatisticRecord = Record<string, SkillTraceData>;

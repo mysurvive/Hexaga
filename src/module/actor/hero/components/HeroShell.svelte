@@ -59,7 +59,14 @@
             <div class="character-intrinsic">
                 <div>
                     <label for="current-hp">HP: </label>
-                    <input type="number" id="current-hp" value={actor.hp.current} />
+                    <input
+                        type="text"
+                        id="current-hp"
+                        value={actor.hp.current}
+                        on:change={(e) => {
+                            actor.modifyHealth(e.currentTarget.value);
+                        }}
+                    />
                     <span
                         >/
                         {actor.hp.max}</span

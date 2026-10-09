@@ -22,6 +22,19 @@ const defineAttributeSchema = () => {
     };
 };
 
+const defineSkillSchema = () => {
+    return {
+        rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
+        mod: new fields.NumberField({ required: true, initial: 0, nullable: false, persistent: false }),
+        breakdown: new fields.ArrayField(new fields.StringField(), {
+            required: true,
+            initial: [],
+            nullable: false,
+            persistent: false,
+        }),
+    };
+};
+
 const defineActorSchema = () => {
     return {
         attributes: new fields.SchemaField({
@@ -38,60 +51,24 @@ const defineActorSchema = () => {
             }),
         }),
         skillData: new fields.SchemaField({
-            brawn: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            striking: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            menace: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            marksmanship: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            legerdemain: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            stealth: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            knowledge: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            arcane: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            tinker: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            sense: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            discernment: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            nature: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            spirituality: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            survival: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            empathy: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            speech: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            command: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
-            occult: new fields.SchemaField({
-                rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-            }),
+            brawn: new fields.SchemaField(defineSkillSchema()),
+            striking: new fields.SchemaField(defineSkillSchema()),
+            menace: new fields.SchemaField(defineSkillSchema()),
+            marksmanship: new fields.SchemaField(defineSkillSchema()),
+            legerdemain: new fields.SchemaField(defineSkillSchema()),
+            stealth: new fields.SchemaField(defineSkillSchema()),
+            knowledge: new fields.SchemaField(defineSkillSchema()),
+            arcane: new fields.SchemaField(defineSkillSchema()),
+            tinker: new fields.SchemaField(defineSkillSchema()),
+            sense: new fields.SchemaField(defineSkillSchema()),
+            discernment: new fields.SchemaField(defineSkillSchema()),
+            nature: new fields.SchemaField(defineSkillSchema()),
+            spirituality: new fields.SchemaField(defineSkillSchema()),
+            survival: new fields.SchemaField(defineSkillSchema()),
+            empathy: new fields.SchemaField(defineSkillSchema()),
+            speech: new fields.SchemaField(defineSkillSchema()),
+            command: new fields.SchemaField(defineSkillSchema()),
+            occult: new fields.SchemaField(defineSkillSchema()),
         }),
     };
 };

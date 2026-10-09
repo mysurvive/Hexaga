@@ -184,7 +184,7 @@ export class HitpointStatistic extends BaseStatistic<ActorHex> {
     }
 
     get base() {
-        return 10 + this.actor.system.attributes.physique.rank * this.actor.system.level;
+        return 10 + this.actor.system.attributes.physique.total * this.actor.system.level;
     }
 
     get current() {
