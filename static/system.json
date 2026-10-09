@@ -14,7 +14,7 @@
     "esmodules": ["hexaga.mjs"],
     "documentTypes": {
         "Actor": { "hero": {} },
-        "Item": { "heritage": { "htmlFields": ["description"] } }
+        "Item": { "heritage": { "htmlFields": ["description"] }, "profession": { "htmlFields": ["description"] } }
     },
     "languages": [
         {

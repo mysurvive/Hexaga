@@ -81,7 +81,8 @@
             "hero": "Hero"
         },
         "Item": {
-            "heritage": "Heritage"
+            "heritage": "Heritage",
+            "profession": "Profession"
         }
     }
 }

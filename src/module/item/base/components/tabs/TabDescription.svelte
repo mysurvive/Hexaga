@@ -43,7 +43,7 @@
             {:else}
                 {#await window.foundry.applications.ux.TextEditor.enrichHTML( item.system?.description ?? "", { async: true }, ) then enrichedHtml}
                     <div class="enriched-text-flow">
-                        {@html enrichedHtml || `<em>No description provided.</em>`}
+                        {@html enrichedHtml}
                     </div>
                 {/await}
             {/if}

@@ -4,7 +4,7 @@ const dsc = foundry.applications.apps.DocumentSheetConfig;
 
 export function registerSheets(): void {
     dsc.registerSheet(Item, "hexaga", ItemSheetHex, {
-        label: "Heritage",
+        label: "Option",
         types: ["heritage", "profession"],
         makeDefault: true,
     });

@@ -14,7 +14,7 @@
 
     const tabs = [
         { id: "description", labelPath: "hexaga.item.sheet.tabs.description" },
-        ...(item.type === "heritage" ? [{ id: "foundational", labelPath: "hexaga.item.sheet.tabs.foundational" }] : []),
+        { id: "foundational", labelPath: "hexaga.item.sheet.tabs.foundational" },
         { id: "config", labelPath: "hexaga.item.sheet.tabs.config" },
     ];
 </script>
