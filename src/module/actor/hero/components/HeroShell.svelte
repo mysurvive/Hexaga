@@ -1,5 +1,6 @@
 <script lang="ts">
     import TabCharacter from "./tabs/TabCharacter.svelte";
+    import TabManeuvers from "./tabs/TabManeuvers.svelte";
     import TabItems from "./tabs/TabItems.svelte";
     import TabSpells from "./tabs/TabSpells.svelte";
     import TabAspects from "./tabs/TabAspects.svelte";
@@ -24,6 +25,7 @@
 
     const tabConfig = [
         { id: "character" },
+        { id: "maneuvers" },
         { id: "items" },
         { id: "spells" },
         { id: "aspects" },
@@ -33,101 +35,120 @@
     let activeTab = "character";
 </script>
 
-<section>
-    <header class="actor-header">
-        <img class="character-portrait" src={actor.img} alt="" />
-        <div class="character-basics">
-            <div>
-                <label for="character-name">Name: </label>
-                <input
-                    type="text"
-                    id="character-name"
-                    value={actor.name}
-                    on:change={(e) => {
-                        updateActorFromInput("name", e);
-                    }}
-                />
-            </div>
-            <div>
-                <label for="character-heritage">Heritage: </label>
-                <span id="character-heritage">{actor.system.options?.heritage?.name ?? ""}</span>
-            </div>
-            <div>
-                <label for="character-profession">Profession: </label>
-                <span id="character-profession">{actor.system.options?.profession?.name ?? ""}</span>
-            </div>
-            <div class="character-intrinsic">
+<section class="flex-row">
+    <div class="left-panel">
+        <img src="systems/hexaga/assets/hexaga_logo.webp" alt="Hexaga logo" />
+    </div>
+    <div class="flex-column">
+        <header class="actor-header">
+            <img class="character-portrait" src={actor.img} alt="hero portrait" />
+            <div class="character-basics">
                 <div>
-                    <label for="current-hp">HP: </label>
+                    <label for="character-name">Name: </label>
                     <input
                         type="text"
-                        id="current-hp"
-                        value={actor.hp.current}
+                        id="character-name"
+                        value={actor.name}
                         on:change={(e) => {
-                            actor.modifyHealth(e.currentTarget.value);
+                            updateActorFromInput("name", e);
                         }}
                     />
-                    <span
-                        >/
-                        {actor.hp.max}</span
-                    >
                 </div>
                 <div>
-                    <label for="character-tempo">Tempo: </label>
-                    <span id="character-tempo">{actor.intrinsics.tempo}</span>
+                    <label for="character-heritage">Heritage: </label>
+                    <span id="character-heritage">{actor.system.options?.heritage?.name ?? ""}</span>
                 </div>
                 <div>
-                    <label for="character-speed">Speed: </label>
-                    <span id="character-speed">{actor.intrinsics.speed}</span>
+                    <label for="character-profession">Profession: </label>
+                    <span id="character-profession">{actor.system.options?.profession?.name ?? ""}</span>
+                </div>
+                <div class="character-intrinsic">
+                    <div>
+                        <label for="current-hp">HP: </label>
+                        <input
+                            type="text"
+                            id="current-hp"
+                            value={actor.hp.current}
+                            on:change={(e) => {
+                                actor.modifyHealth(e.currentTarget.value);
+                            }}
+                        />
+                        <span
+                            >/
+                            {actor.hp.max}</span
+                        >
+                    </div>
+                    <div>
+                        <label for="character-tempo">Tempo: </label>
+                        <span id="character-tempo">{actor.intrinsics.tempo}</span>
+                    </div>
+                    <div>
+                        <label for="character-speed">Speed: </label>
+                        <span id="character-speed">{actor.intrinsics.speed}</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="focus-box-container medium" id="character-level">
-            <div class="focus-label">Level</div>
-            <div class="focus-content">
-                {actor.system.level}
+            <div class="focus-box-container medium" id="character-level">
+                <div class="focus-label">Level</div>
+                <div class="focus-content">
+                    {actor.system.level}
+                </div>
             </div>
-        </div>
-    </header>
-    <nav class="sheet-tabs tabs">
-        {#each tabConfig as tab}
-            <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-            <a
-                class="sheet-tab-button"
-                id={tab.id}
-                class:active={activeTab === tab.id}
-                on:click={() => (activeTab = tab.id)}
-            >
-                <label for={tab.id}>{_loc(`hexaga.actor.hero.sheet.tabs.${tab.id}`)}</label>
-            </a>
-        {/each}
-    </nav>
+        </header>
+        <nav class="sheet-tabs tabs">
+            {#each tabConfig as tab}
+                <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+                <a
+                    class="sheet-tab-button"
+                    id={tab.id}
+                    class:active={activeTab === tab.id}
+                    on:click={() => (activeTab = tab.id)}
+                >
+                    <label for={tab.id}>{_loc(`hexaga.actor.hero.sheet.tabs.${tab.id}`)}</label>
+                </a>
+            {/each}
+        </nav>
 
-    {#if activeTab === "character"}
-        <TabCharacter {actor} />
-    {:else if activeTab === "items"}
-        <TabItems {actor} />
-    {:else if activeTab === "spells"}
-        <TabSpells {actor} />
-    {:else if activeTab === "aspects"}
-        <TabAspects {actor} />
-    {:else if activeTab === "improvements"}
-        <TabImprovements {actor} />
-    {/if}
+        {#if activeTab === "character"}
+            <TabCharacter {actor} />
+        {:else if activeTab === "maneuvers"}
+            <TabManeuvers {actor} />
+        {:else if activeTab === "items"}
+            <TabItems {actor} />
+        {:else if activeTab === "spells"}
+            <TabSpells {actor} />
+        {:else if activeTab === "aspects"}
+            <TabAspects {actor} />
+        {:else if activeTab === "improvements"}
+            <TabImprovements {actor} />
+        {/if}
+    </div>
 </section>
 
 <style lang="scss">
     a {
         cursor: default;
     }
+    .left-panel {
+        min-width: 230px;
+        max-width: 230px;
+        padding-right: 16px;
+        display: flex;
+        flex-direction: column;
+    }
+    .flex-row {
+        display: flex;
+        flex-direction: row;
+    }
     .actor-header {
         display: grid;
-        grid-template-columns: repeat(6, 144px);
+        grid-template-columns: repeat(6, 1fr);
+        height: 150px;
 
         .character-portrait {
-            height: 100%;
-            width: 100%;
-
+            height: 150px;
+            min-height: 150px;
+            max-width: 150px;
             grid-column: 1 / 2;
         }
 

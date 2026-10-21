@@ -1,5 +1,10 @@
 import { HEXAGACONFIG } from "../../../config/index.ts";
-import { HitpointStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
+import {
+    AttackStatistic,
+    HitpointStatistic,
+    ResistanceValueStatistic,
+    SkillStatistic,
+} from "../../system/statistic/statistic.ts";
 import { ATTRIBUTE_GROUP_MAPS, ATTRIBUTE_STRINGS, SKILL_STRINGS } from "../foundation.ts";
 import { ActorHexData } from "../base/baseActorData.ts";
 import { ItemHex } from "../../item/base/base.ts";
@@ -46,6 +51,7 @@ export class HeroData extends ActorHexData<HeroSchema> {
         this.parent.skills = {};
         this.parent.rv = {};
         this.parent.intrinsics = {};
+        this.parent.maneuvers = [];
 
         this.options.heritage = this.heritage ?? null;
         this.options.profession = this.profession ?? null;
@@ -59,6 +65,10 @@ export class HeroData extends ActorHexData<HeroSchema> {
                     rank: this.skills[skill as keyof typeof this.skills].rank,
                 });
             }
+        }
+
+        for (const weapon of this.parent.itemTypes.weapon) {
+            this.parent.maneuvers.push(new AttackStatistic(this.parent, { slug: `${weapon.slug}`, weapon: weapon }));
         }
 
         this.prepareNumericRollOptions();
@@ -75,7 +85,9 @@ export class HeroData extends ActorHexData<HeroSchema> {
         const speedDomainModifiers = this.parent.synthetics.modifiers["speed"] ?? [];
         const speedModifiers = [...allDomainModifiers, ...speedDomainModifiers];
         const speedBonus = speedModifiers.reduce((sum, mod) => {
-            return sum + mod.modifier;
+            const modifier = mod();
+            if (!modifier) return sum;
+            return sum + modifier.modifier;
         }, 0);
 
         this.parent.intrinsics.speed = baseSpeed + speedBonus;
@@ -85,7 +97,9 @@ export class HeroData extends ActorHexData<HeroSchema> {
         const tempoDomainModifiers = this.parent.synthetics.modifiers["tempo"] ?? [];
         const tempoModifiers = [...allDomainModifiers, ...tempoDomainModifiers];
         const tempoBonus = tempoModifiers.reduce((sum, mod) => {
-            return sum + mod.modifier;
+            const modifier = mod();
+            if (!modifier) return sum;
+            return sum + modifier.modifier;
         }, 0);
 
         this.parent.intrinsics.tempo = Math.max(baseTempo + tempoBonus, 1);

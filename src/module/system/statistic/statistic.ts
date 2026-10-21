@@ -1,10 +1,12 @@
 // Every time I try to consider a better way to do this, it always ends up looking like a Statistic anyways
 // The PF2e team just does it right. I don't have anything more to say.
 
+import { TestContext } from "../test.ts";
 import { ActorHex } from "../../actor/base/baseActor.ts";
 import { Attributes } from "../../actor/types.ts";
-import { HexagaTestRoll } from "../dice/roller.ts";
+import { ItemHex } from "../../item/base/base.ts";
 import { Modifier } from "../modifier.ts";
+import { Test } from "../test.ts";
 
 // The base statistic class
 abstract class BaseStatistic<TActor extends ActorHex> {
@@ -24,26 +26,28 @@ abstract class BaseStatistic<TActor extends ActorHex> {
         this.slug = data.slug;
     }
 
-    get modifierList() {
+    getModifierList(rollOptions?: string[]): Modifier[] {
         const deduplicatedModifiers: Modifier[] = [];
 
         for (const domain of this.domains) {
             const modifiers = this.actor.synthetics.modifiers[domain] ?? [];
 
             for (const modifier of modifiers) {
-                if (deduplicatedModifiers.some((mod) => mod.slug === modifier.slug)) {
+                const m = modifier(rollOptions);
+                if (!m) continue;
+                if (deduplicatedModifiers.some((mod) => mod.slug === m.slug)) {
                     continue;
                 }
 
-                deduplicatedModifiers.push(modifier);
+                deduplicatedModifiers.push(m);
             }
         }
 
         return deduplicatedModifiers;
     }
 
-    get modifier() {
-        const modifier = this.modifierList.reduce((sum, modifier) => {
+    getModifierValue(rollOptions?: string[]): number {
+        const modifier = this.getModifierList(rollOptions).reduce((sum, modifier) => {
             return sum + modifier.modifier;
         }, 0);
 
@@ -53,21 +57,7 @@ abstract class BaseStatistic<TActor extends ActorHex> {
 
 // The child class that contains rollable data. HitPointStatistic and ResistanceValueStatistic
 // don't have rollable data, so there needs to be an extra layer of abstraction
-abstract class Statistic extends BaseStatistic<ActorHex> {
-    get poolModifiers() {
-        return this.modifierList.filter((mod) => mod.type === "dice");
-    }
-
-    get flatSuccesses() {
-        return this.modifierList.filter((mod) => mod.type === "flat-success");
-    }
-
-    get flatFailures() {
-        return this.modifierList.filter((mod) => mod.type === "flat-failure");
-    }
-}
-
-//TODO: Narrow down domains so there is a getter for non-roll domains and for roll domains
+abstract class Statistic extends BaseStatistic<ActorHex> {}
 
 export class SkillStatistic extends Statistic {
     declare rank: number;
@@ -77,7 +67,7 @@ export class SkillStatistic extends Statistic {
         super(actor, data);
 
         const config = CONFIG.hexaga.skills[data.slug as keyof typeof CONFIG.hexaga.skills];
-        this.domains = Array.from(new Set(["all", "skill", data.slug, ...(data.domains ?? [])]));
+        this.domains = ["all", "skill", data.slug, ...(data.domains ?? [])];
         this.rank = data.rank;
         this.attribute = config.attribute;
         this.label = _loc(config.label);
@@ -96,7 +86,7 @@ export class SkillStatistic extends Statistic {
     }
 
     get total() {
-        return this.baseRank + this.modifier;
+        return this.baseRank + this.getModifierValue();
     }
 
     get breakdown() {
@@ -108,7 +98,7 @@ export class SkillStatistic extends Statistic {
             breakdownParts.push("Untrained");
         }
 
-        for (const modifier of this.modifierList) {
+        for (const modifier of this.getModifierList()) {
             breakdownParts.push(`${modifier.modifier >= 0 ? "+" : ""} ${modifier.modifier} (${modifier.label})`);
         }
         return breakdownParts.join(", ");
@@ -118,38 +108,25 @@ export class SkillStatistic extends Statistic {
         return {
             slug: this.slug,
             label: this.label,
-            modifier: this.modifier,
+            modifier: this.getModifierValue(),
             rank: this.rank,
             total: this.total,
-            modifiers: this.modifierList,
+            modifiers: this.getModifierList(),
             breakdown: this.breakdown,
             roll: this.roll.bind(this),
         };
     }
 
-    async roll() {
-        const flatSuccessModifiers = this.flatSuccesses.reduce((sum, mod) => {
-            return sum + mod.modifier;
-        }, 0);
-        const flatFailureModifiers = this.flatFailures.reduce((sum, mod) => {
-            return sum + mod.modifier;
-        }, 0);
-        const dicePoolModifiers = this.poolModifiers.reduce((sum, mod) => {
-            return sum + mod.modifier;
-        }, 0);
-
-        const options = {
-            skill: this.slug,
-            trained: this.trained,
-            title: `${_loc(this.label as string)} Test`,
-            additionalDice: dicePoolModifiers,
-            flatSuccesses: flatSuccessModifiers,
-            flatFailures: flatFailureModifiers,
-            breakdown: this.breakdown,
+    async roll(options: Partial<TestContext> = {}) {
+        const testContext: TestContext = {
+            roller: this.actor,
+            dv: options.dv,
+            skill: this,
+            rollOptions: [],
+            domains: this.domains,
+            type: "skill-test",
         };
-        const roll = new HexagaTestRoll(this.baseRank, options);
-        await roll.evaluate();
-        await roll.toMessage();
+        await new Test(testContext).roll();
     }
 }
 
@@ -160,7 +137,7 @@ export class ResistanceValueStatistic extends BaseStatistic<ActorHex> {
         super(actor, data);
 
         this.attributes = data.attributes;
-        this.domains = Array.from(new Set(["all", "rv", data.slug]));
+        this.domains = ["all", "rv", data.slug];
     }
 
     get base() {
@@ -172,7 +149,7 @@ export class ResistanceValueStatistic extends BaseStatistic<ActorHex> {
     }
 
     get total() {
-        return this.base + this.modifier;
+        return this.base + this.getModifierValue();
     }
 }
 
@@ -195,8 +172,79 @@ export class HitpointStatistic extends BaseStatistic<ActorHex> {
     }
 
     get max() {
-        return this.base + this.modifier;
+        return this.base + this.getModifierValue();
     }
+}
+
+export class AttackStatistic extends Statistic {
+    declare type;
+    declare weapon;
+    declare skill;
+    declare rollOptions;
+
+    constructor(actor: ActorHex, data: AttackStatisticData) {
+        super(actor, data);
+        this.weapon = data.weapon;
+        this.type = this.weapon.system.attackType;
+        this.skill = this.actor.skills[this.weapon.system.attackSkill];
+        const extraDomains = data.extraDomains ?? [];
+        const extraRollOptions = data.extraRollOptions ?? [];
+        this.domains = [
+            `all`,
+            `attack`,
+            `${this.type}`,
+            `${this.skill.slug}-attack`,
+            `${this.skill.attribute}-attack`,
+            `${this.weapon.slug}-attack`,
+            `${this.weapon.id}-attack`,
+            ...extraDomains,
+        ];
+        this.rollOptions = [
+            "maneuver:attack",
+            `${this.type}`,
+            ...this.weapon.system.getRollOptions("item"),
+            ...this.actor.getRollOptions(this.domains),
+            ...extraRollOptions,
+        ];
+    }
+
+    attack(context: AttackContext = {}) {
+        const target = game.user.targets.first() ?? null;
+
+        const rv =
+            target instanceof foundry.canvas.placeables.Token && target.actor ? target.actor.rv.physical.total : 0;
+
+        const testContext = {
+            roller: this.actor,
+            target: target instanceof foundry.canvas.placeables.Token ? target.document : undefined,
+            item: this.weapon,
+            domains: this.domains,
+            rollOptions: this.rollOptions,
+            skill: this.skill,
+            type: "attack",
+            dv: rv,
+            mmp: context.mmp,
+        };
+
+        new Test(testContext).roll();
+    }
+    async damage() {}
+}
+interface AttackContext {
+    mmp?: number;
+}
+
+type AttackStatisticData = AttackData & BaseStatisticData;
+
+interface AttackData {
+    weapon: ItemHex<"weapon">;
+    extraDomains?: string[];
+    extraRollOptions?: string[];
+}
+
+interface BaseStatisticData {
+    slug: string;
+    label?: string;
 }
 
 export type SkillTraceData = ReturnType<SkillStatistic["getTraceData"]>;

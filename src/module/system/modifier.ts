@@ -25,15 +25,6 @@ export class Modifier extends foundry.abstract.DataModel<
     }
 }
 
-export interface ModifierSchema extends fields.DataSchema {
-    slug: fields.StringField<{ required: true }>;
-    label: fields.StringField<{ required: true }>;
-    modifier: fields.NumberField<{ required: true }>;
-    domains: fields.ArrayField<fields.StringField>;
-    type: fields.StringField;
-    path: fields.StringField;
-}
-
 const defineModifierSchema = () => {
     return {
         slug: new fields.StringField({ required: true }),
@@ -44,3 +35,5 @@ const defineModifierSchema = () => {
         path: new fields.StringField(),
     };
 };
+
+type ModifierSchema = ReturnType<typeof defineModifierSchema>;

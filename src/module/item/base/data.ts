@@ -5,7 +5,7 @@ export class ItemHexData<Schema extends ItemHexSchema> extends foundry.abstract.
         return defineItemSchema();
     }
 
-    getRollOptions(prefix = this.parent.type): string[] {
+    getRollOptions(prefix: string = this.parent.type): string[] {
         const rollOptions = [`${prefix}:id:${this.parent.id}`, `${prefix}:${this.slug}`];
 
         return rollOptions;

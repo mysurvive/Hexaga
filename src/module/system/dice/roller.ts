@@ -1,21 +1,32 @@
-export interface RollArgs {
-    skill: string;
+import { ActorHex } from "../../actor/base/baseActor.ts";
+import { ItemHex } from "../../item/base/base.ts";
+import { SkillStatistic } from "../statistic/statistic.ts";
+import { Modifier } from "../modifier.ts";
+
+export interface TestRollArgs {
     flavor?: string;
-    additionalDice: number;
-    flatSuccesses: number;
-    flatFailures: number;
-    trained: boolean;
     difficultyValue?: number;
     isTempo?: boolean;
     traceData?: Array<{ label: string; value?: string | null; type: string }>;
-    title: string;
+    title?: string;
 }
 
-export class HexagaTestRoll {
-    declare dicePool: number;
-    declare options: RollArgs;
-    declare title: string;
+export interface TestRollContext {
+    roller: ActorHex;
+    dv: number;
+    item?: ItemHex;
+    origin: { token: TokenDocument | null; actor: ActorHex };
+    target?: { token: TokenDocument; actor: ActorHex } | null;
+    skill: SkillStatistic;
+    modifiers: Modifier[];
+}
 
+export class TestRoll {
+    declare dicePool: number;
+    declare options: TestRollArgs;
+    declare title: string;
+    declare skill: SkillStatistic;
+    declare dv: number;
     public results: number[] = [];
 
     public pushes = 0;
@@ -27,9 +38,11 @@ export class HexagaTestRoll {
     public successesAfterDV = 0;
     public pass = false;
 
-    constructor(dicePool: number, options: RollArgs) {
-        this.dicePool = Math.max(dicePool, 0);
-        this.title = options.title;
+    constructor(context: TestRollContext, options: TestRollArgs) {
+        this.skill = context.skill;
+        this.dv = context.dv;
+        this.dicePool = Math.max(this.skill.total, 0);
+        this.title = options.title ?? "Roll";
         this.options = options;
     }
 
@@ -46,7 +59,7 @@ export class HexagaTestRoll {
                 }
             }) ?? ([] as number[]);
 
-        const successThreshold = this.options.trained ? 4 : 5;
+        const successThreshold = this.skill.trained ? 4 : 5;
 
         this.pushes = this.results.filter((r) => r === 6).length;
         this.successes = this.results.filter((r) => r >= successThreshold).length;
@@ -54,8 +67,8 @@ export class HexagaTestRoll {
         this.pulls = this.results.filter((r) => r === 1).length;
 
         this.rolledNetSuccesses = this.successes + this.pushes - this.pulls;
-        this.successesAfterMods = this.rolledNetSuccesses + this.options.flatSuccesses - this.options.flatFailures;
-        this.successesAfterDV = this.successesAfterMods - (this.options.difficultyValue ?? 0);
+        this.successesAfterMods = this.rolledNetSuccesses;
+        this.successesAfterDV = this.successesAfterMods - (this.dv ?? 0);
 
         if (this.successesAfterDV >= 1) {
             this.pass = true;
@@ -69,7 +82,7 @@ export class HexagaTestRoll {
 
         const chatData = {
             totalSuccesses: this.successesAfterMods,
-            dv: this.options.difficultyValue,
+            dv: this.dv,
             finalSuccesses: this.successesAfterDV,
             formula: `${this.dicePool}d6`,
             passed: this.pass,

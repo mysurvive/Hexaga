@@ -7,8 +7,8 @@ export class HeroSheet extends foundry.applications.sheets.ActorSheetV2 {
     static override DEFAULT_OPTIONS = {
         classes: ["hexaga", "sheet", "actor"],
         tag: "form",
-        window: { resizable: false },
-        position: { width: 900, height: 900 },
+        window: { resizable: true },
+        position: { width: 1100, height: 900 },
     };
 
     protected override async _renderHTML(_context: object, _options: object): Promise<HTMLElement> {

@@ -1,12 +1,13 @@
-<script lang="ts">
+<script>
+    import { ActorHex } from "../../../base/baseActor.ts";
     import { ATTRIBUTE_GROUP_MAPS } from "../../../foundation.ts";
-    export let actor: ActorHex;
+    export let actor;
 
-    function _loc(key: string): string {
+    function _loc(key) {
         return game.i18n.localize(key);
     }
 
-    async function handleRoll(skill: string): Promise<void> {
+    async function handleRoll(skill) {
         await actor.skills[skill].roll();
     }
 </script>

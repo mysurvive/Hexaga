@@ -6,13 +6,19 @@ export class FlatModifier extends RuleElement<FlatModifierConfig> {
         if (this.data.phase !== "derived") return;
         if (!this.actor) return;
 
-        const modifier = new Modifier({
-            slug: this.data.slug ?? this.item.name.slugify(),
-            label: this.data.label ?? this.item.name,
-            modifier: this.data.config.value ?? 0,
-        });
+        for (const domain of this.data.domains) {
+            if (!domain) continue;
 
-        this.generateSynthetics(modifier);
+            this.actor.synthetics.modifiers[domain] ??= [];
+            this.actor.synthetics.modifiers[domain].push((rollOptions: string[] | undefined) => {
+                if (!this.testPredicate(rollOptions)) return;
+                return new Modifier({
+                    slug: this.data.slug ?? this.item.name.slugify(),
+                    label: this.data.label ?? this.item.name,
+                    modifier: this.data.config.value ?? 0,
+                });
+            });
+        }
     }
 }
 

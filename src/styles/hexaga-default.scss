@@ -1,0 +1,28 @@
+.hexaga {
+    --hexaga-orange: #f49d37;
+    --hexaga-carbon: #242423;
+    --hexaga-gray: #333533;
+    --hexaga-light-grey: #cfdbd5;
+    --hexaga-light: #e8eddf;
+
+    background: var(--hexaga-light);
+    outline-color: var(--hexaga-carbon);
+    color: var(--hexaga-carbon);
+
+    header {
+        background: var(--hexaga-light-grey);
+    }
+    .attribute-group-label {
+        color: var(--hexaga-orange);
+    }
+    .attribute-group {
+        background: var(--hexaga-light-grey);
+    }
+    .window-header {
+        background: var(--hexaga-carbon);
+    }
+    button {
+        color: var(--hexaga-orange);
+        background-color: var(--hexaga-carbon);
+    }
+}

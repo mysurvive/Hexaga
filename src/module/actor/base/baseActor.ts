@@ -1,6 +1,11 @@
 import { RuleElement } from "../../system/ruleElement/base.ts";
 import { RulesEngine } from "../../system/ruleElement/rulesEngine.ts";
-import { HitpointStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
+import {
+    AttackStatistic,
+    HitpointStatistic,
+    ResistanceValueStatistic,
+    SkillStatistic,
+} from "../../system/statistic/statistic.ts";
 import { ActorSynthetics } from "../synthetics.ts";
 
 export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Actor<SubType> {
@@ -9,6 +14,7 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
     declare rv: Record<string, ResistanceValueStatistic>;
     declare intrinsics: Record<string, any>;
     declare hp: HitpointStatistic;
+    declare maneuvers: AttackStatistic[];
     public rules: RuleElement[] = [];
 
     protected override async _preCreate(
@@ -130,6 +136,13 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
                 if (option) rollOptions.push(option);
             }
         }
+        return rollOptions;
+    }
+
+    getContextualSelfRollOptions(prefix: string = "self"): string[] {
+        const rollOptions = Object.keys(this.system.rollOptions.all).flatMap((option) =>
+            option.startsWith("self:") ? option.replace(/^self/, prefix) : [],
+        );
         return rollOptions;
     }
 }

@@ -5,7 +5,7 @@ export class WeaponData extends ItemHexData<WeaponDataSchema> {
         return defineWeaponSchema();
     }
 
-    override getRollOptions(prefix = this.parent.type) {
+    override getRollOptions(prefix: string = this.parent.type) {
         const rollOptions = super.getRollOptions(prefix);
 
         const totalDmp = this.damagePool.reduce((total, current) => {

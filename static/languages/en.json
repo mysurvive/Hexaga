@@ -8,7 +8,8 @@
                         "items": "Items",
                         "aspects": "Aspects",
                         "spells": "Spells",
-                        "improvements": "Improvements"
+                        "improvements": "Improvements",
+                        "maneuvers": "Maneuvers"
                     }
                 }
             }

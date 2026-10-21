@@ -1,14 +1,19 @@
-<script lang="ts">
-    export let actor: ActorHex;
+<script>
+    import { ItemHex } from "../../../../item/base/base.ts";
+    import { ActorHex } from "../../../base/baseActor.ts";
+
+    export let actor;
 
     $: weapons = [...actor.itemTypes.weapon];
 
-    async function toggleEquip(item: ItemHex) {
+    async function toggleEquip(item) {
+        if (!item.id || !item._id) return;
         const currentItem = actor.items.get(item.id || item._id);
         const isEquipped = !item.system.equipped;
 
         try {
-            await currentItem.update({ "system.equipped": isEquipped });
+            if (!currentItem) throw Error("Item is undefined");
+            await currentItem.update({ system: { equipped: isEquipped } });
 
             weapons = [...actor.itemTypes.weapon];
         } catch (error) {
@@ -26,14 +31,9 @@
         {#each weapons as weapon (weapon.id)}
             <details class="equipment-item">
                 <summary class="equipment weapon-item">
-                    <img type="image" alt={weapon.name} src={weapon.img} />
+                    <img alt={weapon.name} src={weapon.img} />
                     <span class="item-name">{weapon.name}</span>
                     <span class="controls flex-row">
-                        {#if weapon.system.equipped}
-                            <button type="button" data-tooltip="Attack">
-                                <i class="fa-solid fa-swords"></i>
-                            </button>
-                        {/if}
                         <button
                             class={weapon.system.equipped ? "active" : ""}
                             type="button"

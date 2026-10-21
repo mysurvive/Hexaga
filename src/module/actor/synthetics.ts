@@ -1,5 +1,7 @@
 import { Modifier } from "../system/modifier.ts";
 
 export interface ActorSynthetics {
-    modifiers: Record<string, Modifier[]>;
+    modifiers: Record<string, DeferredModifier[]>;
 }
+
+export type DeferredModifier = (rollOptions?: string[]) => Modifier | undefined;
