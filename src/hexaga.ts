@@ -12,11 +12,13 @@ import { ProfessionData } from "./module/item/character-options/profession/data.
 import { AspectData } from "./module/item/character-options/aspect/aspectData.ts";
 import { AspectNodeData } from "./module/item/character-options/aspect/aspectNodeData.ts";
 import { WeaponData } from "./module/item/equipment/weapon/weaponData.ts";
+import { registerHooks } from "./scripts/register-hooks.ts";
 
 Hooks.on("init", () => {
     registerSheets();
     registerTemplates();
     registerHandlebarsHelpers();
+    registerHooks();
 
     CONFIG.hexaga = HEXAGACONFIG;
 

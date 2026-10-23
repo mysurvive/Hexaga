@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
     import LevelOptions from "./LevelOptions.svelte";
     export let actor;
     export let level;

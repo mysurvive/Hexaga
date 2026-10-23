@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { ActorHex } from "../../../base/baseActor.ts";
     import BackgroundOptions from "../parts/BackgroundOptions.svelte";
     import LevelOptionsShell from "../parts/LevelOptionsShell.svelte";
     export let actor: ActorHex;

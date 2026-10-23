@@ -29,6 +29,9 @@ declare global {
         Actor: {
             hexaga: Record<string, any> | undefined;
         };
+        ChatMessage: {
+            hexaga: Record<string, any> | undefined;
+        };
     }
 }
 

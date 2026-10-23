@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
     export let actor;
     export let level;
     export let optionType;
@@ -14,14 +14,14 @@
 
     $: allLevelImprovements = actor.system.improvements ?? [];
 
-    function getCount(option: string, improvements) {
+    function getCount(option, improvements) {
         return chosenLevelImprovements[optionType].reduce(
             (total, current) => (current === option ? total + 1 : total),
             0,
         );
     }
 
-    function getCountAll(option: string, improvements) {
+    function getCountAll(option, improvements) {
         let counter = 0;
         const eligibleImprovements = improvements.filter(
             (i) => i.source === "heritage" || i.source === "profession" || Number(i.source.split("level")[1]) <= level,
@@ -35,11 +35,11 @@
         return counter;
     }
 
-    function atLevelCap(type: string) {
+    function atLevelCap(type) {
         return chosenLevelImprovements[type].length >= grantedLevelImprovements[type];
     }
 
-    async function increaseChoice(option: string) {
+    async function increaseChoice(option) {
         const picks = Array.isArray(actor.system.improvements) ? [...actor.system.improvements] : [];
         let targetPick = picks.find((p) => p.source === `level${level}`);
 
@@ -60,7 +60,7 @@
         await actor.update(updates);
     }
 
-    async function decreaseChoice(option: string) {
+    async function decreaseChoice(option) {
         const picks = Array.isArray(actor.system.improvements) ? [...actor.system.improvements] : [];
         let targetPick = picks.find((p) => p.source === `level${level}`);
 

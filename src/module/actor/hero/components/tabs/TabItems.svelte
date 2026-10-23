@@ -68,8 +68,14 @@
                     {/await}
                     <div class="footer">
                         <hr />
-                        {#each weapon.system.damagePool as damagePool}
-                            <div>DMP: {damagePool.base} - Damage Type: {damagePool.damageType}</div>
+                        <div>
+                            DMP: {weapon.system.damagePool.base.damagePool} - Damage Type: {weapon.system.damagePool
+                                .base.damagePool.damageType}
+                        </div>
+                        {#each weapon.system.damagePool.additional as additionalDamagePool}
+                            <div>
+                                DMP: {additionalDamagePool.damagePool} - Damage Type: {additionalDamagePool.damageType}
+                            </div>
                         {/each}
                     </div>
                 </div>

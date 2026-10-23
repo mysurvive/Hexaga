@@ -1,0 +1,26 @@
+<div class="hexaga-damage-roll" data-actor-id="{{actorId}}" data-item-id="{{itemId}}">
+    <div class="roll-title">
+        {{title}}
+    </div>
+    <hr />
+    <details class="formula">
+        <summary>
+            {{#each rolls.terms}}
+                {{#if term}}
+                    <span class="damage-term">
+                        {{term}}
+                        {{damageIcon flavor}}
+                    </span>
+                {{else}}
+                    {{operator}}
+                {{/if}}
+            {{/each}}
+        </summary>
+    </details>
+    <span class="total">{{rolls.total}}</span>
+    {{#if target}}
+        <button type="button" data-action="apply-damage">
+            Apply Damage
+        </button>
+    {{/if}}
+</div>

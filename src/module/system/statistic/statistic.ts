@@ -1,12 +1,11 @@
-// Every time I try to consider a better way to do this, it always ends up looking like a Statistic anyways
-// The PF2e team just does it right. I don't have anything more to say.
-
 import { TestContext } from "../test.ts";
 import { ActorHex } from "../../actor/base/baseActor.ts";
 import { Attributes } from "../../actor/types.ts";
 import { ItemHex } from "../../item/base/base.ts";
 import { Modifier } from "../modifier.ts";
 import { Test } from "../test.ts";
+import { DamageRoll, DamageRollContext, RollArgs } from "../dice/roller.ts";
+import { RollDialog } from "../rollDialog/rollDialog.ts";
 
 // The base statistic class
 abstract class BaseStatistic<TActor extends ActorHex> {
@@ -26,10 +25,16 @@ abstract class BaseStatistic<TActor extends ActorHex> {
         this.slug = data.slug;
     }
 
-    getModifierList(rollOptions?: string[]): Modifier[] {
-        const deduplicatedModifiers: Modifier[] = [];
+    protected getBaseModifiers(rollOptions?: string[]): Modifier[] {
+        return [];
+    }
 
-        for (const domain of this.domains) {
+    getModifierList(domains?: string[], rollOptions?: string[]): Modifier[] {
+        const deduplicatedModifiers: Modifier[] = [...this.getBaseModifiers(rollOptions)];
+
+        const activeDomains = domains ?? this.domains;
+
+        for (const domain of activeDomains) {
             const modifiers = this.actor.synthetics.modifiers[domain] ?? [];
 
             for (const modifier of modifiers) {
@@ -86,22 +91,51 @@ export class SkillStatistic extends Statistic {
     }
 
     get total() {
-        return this.baseRank + this.getModifierValue();
+        return this.getModifierValue();
     }
 
     get breakdown() {
-        const breakdownParts: string[] = [];
+        return this.getModifierList()
+            .map((mod) => `${mod.modifier >= 0 ? "+" : ""} ${mod.modifier} (${mod.label})`)
+            .join(", ");
+    }
+
+    protected override getBaseModifiers(rollOptions?: string[]): Modifier[] {
+        const baseMods: Modifier[] = [];
+
         if (this.trained) {
-            breakdownParts.push(`+ ${this.rank} (${_loc(this.label as string)} Rank)`);
-            breakdownParts.push(`+ ${this.attributeRank} (${_loc(`hexaga.attributes.${this.attribute}.label`)} Rank)`);
+            if (this.attributeRank !== undefined) {
+                baseMods.push(
+                    new Modifier({
+                        slug: this.attribute,
+                        label: _loc(`hexaga.attributes.${this.attribute}.label`),
+                        modifier: this.attributeRank,
+                        modifies: "dice",
+                    }),
+                );
+            }
+            if (this.rank > 0) {
+                baseMods.push(
+                    new Modifier({
+                        slug: this.slug,
+                        label: `${this.label} Rank`,
+                        modifier: this.rank,
+                        modifies: "dice",
+                    }),
+                );
+            }
         } else {
-            breakdownParts.push("Untrained");
+            baseMods.push(
+                new Modifier({
+                    slug: "untrained",
+                    label: "Untrained",
+                    modifier: 1,
+                    modifies: "dice",
+                }),
+            );
         }
 
-        for (const modifier of this.getModifierList()) {
-            breakdownParts.push(`${modifier.modifier >= 0 ? "+" : ""} ${modifier.modifier} (${modifier.label})`);
-        }
-        return breakdownParts.join(", ");
+        return baseMods;
     }
 
     getTraceData() {
@@ -124,7 +158,7 @@ export class SkillStatistic extends Statistic {
             skill: this,
             rollOptions: [],
             domains: this.domains,
-            type: "skill-test",
+            type: "test",
         };
         await new Test(testContext).roll();
     }
@@ -192,7 +226,7 @@ export class AttackStatistic extends Statistic {
         this.domains = [
             `all`,
             `attack`,
-            `${this.type}`,
+            `${this.type}-attack`,
             `${this.skill.slug}-attack`,
             `${this.skill.attribute}-attack`,
             `${this.weapon.slug}-attack`,
@@ -214,7 +248,7 @@ export class AttackStatistic extends Statistic {
         const rv =
             target instanceof foundry.canvas.placeables.Token && target.actor ? target.actor.rv.physical.total : 0;
 
-        const testContext = {
+        const testContext: TestContext = {
             roller: this.actor,
             target: target instanceof foundry.canvas.placeables.Token ? target.document : undefined,
             item: this.weapon,
@@ -223,13 +257,27 @@ export class AttackStatistic extends Statistic {
             skill: this.skill,
             type: "attack",
             dv: rv,
+            dealsDamage: true,
             mmp: context.mmp,
         };
 
         new Test(testContext).roll();
     }
-    async damage() {}
+    async damage(context: DamageRollContext) {
+        const args: RollArgs = { title: `Damage Roll: ${this.weapon.name}` };
+        const damageDomains = this.domains.map((domain) => domain.replace(/attack$/, "damage"));
+
+        context.modifiers = this.getModifierList(damageDomains, this.rollOptions);
+        context.skill = this.skill;
+
+        const finalContext = await RollDialog.prompt(context, args);
+        if (!finalContext) return;
+
+        const damageRoll = await new DamageRoll(finalContext, args).evaluate();
+        damageRoll?.toMessage();
+    }
 }
+
 interface AttackContext {
     mmp?: number;
 }

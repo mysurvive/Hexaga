@@ -11,7 +11,7 @@ export class Modifier extends foundry.abstract.DataModel<
     declare domains: string[];
     declare slug: string;
     declare type: string;
-    declare path: string;
+    declare modifies: "dice" | "flat";
 
     protected override _initialize(options?: Record<string, unknown>) {
         super._initialize(options);
@@ -21,7 +21,7 @@ export class Modifier extends foundry.abstract.DataModel<
         this.domains = this.domains;
         this.slug = this.slug;
         this.type = this.type;
-        this.path = this.path;
+        this.modifies = this.modifies;
     }
 }
 
@@ -32,7 +32,12 @@ const defineModifierSchema = () => {
         modifier: new fields.NumberField({ required: true }),
         domains: new fields.ArrayField(new fields.StringField()),
         type: new fields.StringField(),
-        path: new fields.StringField(),
+        modifies: new fields.StringField({
+            required: true,
+            nullable: false,
+            initial: "dice",
+            choices: ["dice", "flat"],
+        }),
     };
 };
 

@@ -1,13 +1,15 @@
 import { SvelteComponent } from "svelte";
 import RollDialogShell from "./components/RollDialogShell.svelte";
-import { TestRollArgs, TestRollContext } from "../dice/roller.ts";
+import { DamageRollContext, RollArgs, TestRollContext } from "../dice/roller.ts";
 
-export class RollDialog extends foundry.applications.api.ApplicationV2 {
+export class RollDialog<TContext extends RollDialogContext = RollDialogContext>
+    extends foundry.applications.api.ApplicationV2
+{
     private svelteComponent: SvelteComponent | null = null;
-    private resolvePromise: ((value: TestRollContext | null) => void) | null = null;
-    declare context;
+    private resolvePromise: ((value: TContext | null) => void) | null = null;
+    declare context: TContext;
 
-    constructor(context: TestRollContext, args: TestRollArgs, resolve: (value: TestRollContext | null) => void) {
+    constructor(context: TContext, args: RollArgs, resolve: (value: TContext | null) => void) {
         super({ window: { title: args.title } });
         this.context = context;
         this.resolvePromise = resolve;
@@ -16,14 +18,14 @@ export class RollDialog extends foundry.applications.api.ApplicationV2 {
     static override DEFAULT_OPTIONS = {
         classes: ["hexaga", "dialog"],
         tag: "div",
-        window: { resizable: true },
-        position: { width: 600, height: 400 },
+        window: { resizable: false },
+        position: { width: 400, height: 500 },
     };
 
-    static prompt(context: TestRollContext, args: TestRollArgs): Promise<TestRollContext | null> {
+    static prompt<TContext extends RollDialogContext>(context: TContext, args: RollArgs): Promise<TContext | null> {
         return new Promise((resolve) => {
-            const dialog = new RollDialog(context, args, resolve);
-            dialog.render(true);
+            const dialog = new RollDialog<TContext>(context, args, resolve);
+            dialog.render({ force: true });
         });
     }
 
@@ -48,13 +50,13 @@ export class RollDialog extends foundry.applications.api.ApplicationV2 {
                     modifiers: this.context.modifiers,
                     skill: this.context.skill,
                     item: this.context.item ?? undefined,
-                    onConfirm: (finalContext: TestRollContext) => this.submitRoll(finalContext),
+                    onConfirm: (finalContext: TContext) => this.submitRoll(finalContext),
                 },
             });
         }
     }
 
-    public submitRoll(finalContext: TestRollContext) {
+    public submitRoll(finalContext: TContext) {
         if (this.resolvePromise) {
             this.context.modifiers = finalContext.modifiers ?? this.context.modifiers;
 
@@ -76,3 +78,7 @@ export class RollDialog extends foundry.applications.api.ApplicationV2 {
         return super._onClose(options);
     }
 }
+
+export type RollDialogContext = TestRollContext | DamageRollContext;
+
+export interface RollDialogArgs {}

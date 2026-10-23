@@ -16,6 +16,7 @@ export class FlatModifier extends RuleElement<FlatModifierConfig> {
                     slug: this.data.slug ?? this.item.name.slugify(),
                     label: this.data.label ?? this.item.name,
                     modifier: this.data.config.value ?? 0,
+                    modifies: this.data.config.modifies ?? "dice",
                 });
             });
         }
@@ -24,5 +25,6 @@ export class FlatModifier extends RuleElement<FlatModifierConfig> {
 
 export type FlatModifierConfig = {
     value: number;
+    modifies: "flat" | "dice";
     type?: string;
 };

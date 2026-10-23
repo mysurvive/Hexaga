@@ -1,3 +1,5 @@
+import { DAMAGE_ICONS } from "../module/item/equipment/weapon/weaponConfig.ts";
+
 export function registerHandlebarsHelpers(): void {
     type operatorTypes = "eq" | "noteq" | "gt" | "or" | "and" | "%";
 
@@ -56,5 +58,13 @@ export function registerHandlebarsHelpers(): void {
             return options.fn(this);
         }
         return options.inverse(this);
+    });
+
+    Handlebars.registerHelper("damageIcon", (flavor: string) => {
+        if (!flavor) return;
+        const config = CONFIG.hexaga.damageIcons[flavor.toLowerCase() as keyof typeof DAMAGE_ICONS];
+        return new Handlebars.SafeString(
+            `<i class="${config.icon}" style="color: ${config.color};" data-tooltip="${game.i18n.localize(config.label)}"></i>`,
+        );
     });
 }

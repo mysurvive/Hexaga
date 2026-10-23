@@ -1,6 +1,6 @@
 import { ActorHex } from "../actor/base/baseActor.ts";
 import { ItemHex } from "../item/base/base.ts";
-import { TestRollArgs, TestRoll, TestRollContext } from "./dice/roller.ts";
+import { RollArgs, TestRoll, TestRollContext } from "./dice/roller.ts";
 import { Modifier } from "./modifier.ts";
 import { RollDialog } from "./rollDialog/rollDialog.ts";
 import { SkillStatistic } from "./statistic/statistic.ts";
@@ -15,6 +15,7 @@ export class Test {
     declare roller;
     declare type;
     declare mmp;
+    declare dealsDamage;
 
     constructor(context: TestContext) {
         this.roller = context.roller;
@@ -26,6 +27,7 @@ export class Test {
         this.dv = context.dv ?? 0;
         this.type = context.type;
         this.mmp = context.mmp ?? 0;
+        this.dealsDamage = context.dealsDamage ?? false;
     }
 
     getRollContext(): TestRollContext {
@@ -37,15 +39,16 @@ export class Test {
             );
         }
 
-        console.log(this.domains);
-        const modifiers = Object.entries(this.roller.synthetics.modifiers).flatMap(([domain, modifiers]) =>
-            this.domains.includes(domain)
-                ? modifiers.map((m) => m(activeRollOptions)).filter((m) => m !== undefined)
-                : [],
-        );
+        const modifiers = this.skill.getModifierList(this.domains, activeRollOptions);
         if (this.mmp < 0) {
             modifiers.push(
-                new Modifier({ label: "Multiple Maneuver Penalty", slug: "mmp", modifier: this.mmp, domains: ["all"] }),
+                new Modifier({
+                    label: "Multiple Maneuver Penalty",
+                    slug: "mmp",
+                    modifier: this.mmp,
+                    domains: ["all"],
+                    modifies: "flat",
+                }),
             );
         }
 
@@ -57,10 +60,12 @@ export class Test {
             target: this.target && this.target.actor ? { token: this.target, actor: this.target.actor } : null,
             skill: this.skill,
             modifiers: modifiers,
+            dealsDamage: this.dealsDamage,
+            rollType: this.type,
         };
     }
 
-    async roll(args: TestRollArgs = {}) {
+    async roll(args: RollArgs = {}) {
         args.title = args.title
             ? args.title
             : this.type === "attack"
@@ -72,7 +77,6 @@ export class Test {
         const finalRollContext = await RollDialog.prompt(rollContext, args);
 
         if (!finalRollContext) return;
-        console.log(finalRollContext);
 
         const roll = await new TestRoll(finalRollContext, args).evaluate();
         await roll.toMessage();
@@ -87,6 +91,7 @@ export interface TestContext {
     domains: string[];
     rollOptions: string[];
     skill: SkillStatistic;
-    type: string;
+    type: "attack" | "test";
     mmp?: number;
+    dealsDamage?: boolean;
 }

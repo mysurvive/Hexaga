@@ -1,14 +1,15 @@
-<script lang="ts">
+<script>
     export let item;
 
     const CONFIG = window.CONFIG.hexaga;
 
     $: system = item.system;
-    $: damagePool = system.damagePool;
+    $: basePool = system.damagePool.base;
+    $: additionalDamagePool = system.damagePool.additional;
     $: attackType = system.attackType;
     $: attackSkill = system.attackSkill;
 
-    async function updateItemFromEvent(path: string, event: Event) {
+    async function updateItemFromEvent(path, event) {
         const target = event.currentTarget;
 
         if (!target || (!"value") in target) return;
@@ -19,46 +20,49 @@
         }
     }
 
-    async function handlePoolChange(event: Event) {
-        const target = event.target as HTMLInputElement | HTMLSelectElement;
+    async function handlePoolChange(event) {
+        const target = event.target;
         if (!target) return;
 
         const indexStr = target.getAttribute("data-index");
         const key = target.getAttribute("data-key");
 
-        if (indexStr === null || !key) return;
-
-        const index = parseInt(indexStr, 10);
-        const pools = [...damagePool];
+        if (!key) return;
 
         const value = target.type === "number" ? Number(target.value) || 0 : target.value;
 
-        pools[index] = { ...pools[index], [key]: value };
-
         try {
-            await item.update({ "system.damagePool": pools });
+            if (indexStr === null) {
+                await item.update({ [`system.damagePool.base.${key}`]: value });
+            } else {
+                const index = parseInt(indexStr, 10);
+                const pools = [...additionalDamagePool];
+                pools[index] = { ...pools[index], [key]: value };
+
+                await item.update({ "system.damagePool.additional": pools });
+            }
         } catch (error) {
-            console.error(`Error updating damage pool via delegation on ${item.name}`, error);
+            console.error(`Error updating damage pool on ${item.name}`, error);
         }
     }
 
     async function addPool() {
-        const pools = damagePool;
+        const pools = additionalDamagePool;
         const newPools = [...pools, { base: 1, damageType: "bludgeoning" }];
 
         try {
-            await item.update({ "system.damagePool": newPools });
+            await item.update({ "system.damagePool.additional": newPools });
         } catch (error) {
             console.error(`Error updating damage pool on ${item.name}`);
         }
     }
 
-    async function removePool(index: number) {
-        const pools = [...damagePool];
+    async function removePool(index) {
+        const pools = [...additionalDamagePool];
         pools.splice(index, 1);
 
         try {
-            await item.update({ "system.damagePool": pools });
+            await item.update({ "system.damagePool.additional": pools });
         } catch (error) {
             console.error(`Error updating damage pool on ${item.name}`);
         }
@@ -97,7 +101,29 @@
     <fieldset>
         <legend>{window.game.i18n.localize("hexaga.weapon.damagePool.plural")}</legend>
         <ul on:change={(e) => handlePoolChange(e)}>
-            {#each damagePool as pool, index (pool)}
+            <span>Base damage:</span>
+            <div class="pool flex-row">
+                <div class="flex-row">
+                    <label for="dice">{window.game.i18n.localize("hexaga.dice.plural")}: </label>
+                    <input type="number" id="dice" data-key="damagePool" value={basePool.damagePool} />
+                </div>
+                <div class="flex-row">
+                    <label for="damage-type">{window.game.i18n.localize("hexaga.damageTypes.label")}: </label>
+                    <select id="damage-type" data-key="damageType" value={basePool.damageType}>
+                        {#each CONFIG.damageTypes as damageType}
+                            <option value={damageType}
+                                >{window.game.i18n.localize(`hexaga.damageTypes.${damageType}`)}</option
+                            >
+                        {/each}
+                    </select>
+                </div>
+                <div class="flex-row">
+                    <label for="flat"> + </label>
+                    <input type="number" id="flat" data-key="flatDamage" value={basePool.flatDamage} />
+                </div>
+            </div>
+            <span>Additional damage pools:</span>
+            {#each additionalDamagePool as pool, index (pool)}
                 <div class="pool flex-row">
                     <div class="flex-row">
                         <label for="dice">{window.game.i18n.localize("hexaga.dice.plural")}: </label>
@@ -105,9 +131,8 @@
                             type="number"
                             id="dice"
                             data-index={index}
-                            data-key="base"
-                            value={pool.base}
-                            on:change={() => {}}
+                            data-key="damagePool"
+                            value={pool.damagePool}
                         />
                     </div>
                     <div class="flex-row">
@@ -119,6 +144,16 @@
                                 >
                             {/each}
                         </select>
+                    </div>
+                    <div class="flex-row">
+                        <label for="flat"> + </label>
+                        <input
+                            type="number"
+                            id="flat"
+                            data-key="flatDamage"
+                            data-index={index}
+                            value={pool.flatDamage}
+                        />
                     </div>
                     <button
                         type="button"
@@ -139,26 +174,58 @@
     section {
         overflow-y: auto;
     }
+
     .flex-row {
         display: flex;
         flex-direction: row;
         align-items: center;
         width: 100%;
+        justify-content: flex-start;
+        gap: 15px;
+    }
+
+    .pool.flex-row {
+        width: 100%;
+        justify-content: flex-start;
+        margin-top: 5px;
+    }
+
+    .pool div.flex-row {
+        width: auto;
+        gap: 15px;
+    }
+
+    .pool {
         select {
             width: auto;
+            min-width: 120px;
         }
-        input {
-            width: auto;
+
+        input[type="number"] {
+            width: 45px;
+            text-align: center;
+            flex-grow: 0;
+            flex-shrink: 0;
         }
-        label {
-            margin-right: 5px;
-        }
+
         button {
             width: 30px;
             height: 30px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
         }
     }
-    .pool {
-        margin-top: 5px;
+
+    ul {
+        padding: 0px 0px 0px 0.5em;
+        width: 100%;
+
+        > div {
+            padding: 0px 0px 0px 1.5em;
+            margin: 10px 0;
+        }
     }
 </style>

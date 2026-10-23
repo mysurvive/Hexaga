@@ -1,0 +1,55 @@
+<div class="hexaga-test-roll" data-actor-id="{{actorId}}" data-item-id="{{itemId}}">
+    <div class="roll-title">
+        {{title}}
+    </div>
+    <hr />
+    <div>DV: {{dv}}</div>
+
+    <div class="roll-modifiers">
+        {{#each modifierTrace}}
+            <div class="modifier-trace">{{this.label}} {{this.value}}</div>
+        {{/each}}
+    </div>
+
+    <div class="dice-formula">
+        {{formula}}
+    </div>
+
+    <div class="pass-label">
+        {{#if isCriticalFailure}}
+            <div class="test-critical-failure">
+                Critical Failure
+            </div>
+        {{else if passed}}
+            {{#if (gt successLevel 1)}}
+                <div class="test-critical-success">
+                    Critical Success x{{criticalMulitplier}}
+                </div>
+            {{else}}
+                <div class="test-success">
+                    Success
+                </div>
+            {{/if}}
+        {{else}}
+            <div class="test-failure">
+                Fail
+            </div>
+        {{/if}}
+    </div>
+
+    <div class="all-rolls">
+        {{#each diceList}}
+            <div class="die">
+                {{this}}
+            </div>
+        {{/each}}
+    </div>
+
+    {{#if dealsDamage}}
+        <div class="card-actions">
+            <button class="roll-damage-btn" type="button" data-action="roll-damage">
+                Roll Damage
+            </button>
+        </div>
+    {{/if}}
+</div>
