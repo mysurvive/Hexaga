@@ -16,6 +16,7 @@ export class Test {
     declare type;
     declare mmp;
     declare dealsDamage;
+    declare against;
 
     constructor(context: TestContext) {
         this.roller = context.roller;
@@ -24,10 +25,11 @@ export class Test {
         this.rollOptions = context.rollOptions;
         this.skill = context.skill;
         this.item = context.item;
-        this.dv = context.dv ?? 0;
+        this.dv = context.dv;
         this.type = context.type;
         this.mmp = context.mmp ?? 0;
         this.dealsDamage = context.dealsDamage ?? false;
+        this.against = context.against;
     }
 
     getRollContext(): TestRollContext {
@@ -52,6 +54,12 @@ export class Test {
             );
         }
 
+        if (!this.dv && this.against && this.target) {
+            this.dv = this.target.actor?.rv[this.against].total ?? 0;
+        } else if (!this.dv) {
+            this.dv = 0;
+        }
+
         return {
             roller: this.roller,
             dv: this.dv,
@@ -62,6 +70,7 @@ export class Test {
             modifiers: modifiers,
             dealsDamage: this.dealsDamage,
             rollType: this.type,
+            against: this.against,
         };
     }
 
@@ -94,4 +103,5 @@ export interface TestContext {
     type: "attack" | "test";
     mmp?: number;
     dealsDamage?: boolean;
+    against?: "physical" | "mental" | "personality";
 }

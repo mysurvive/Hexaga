@@ -49,6 +49,12 @@
                 }
             }
         },
+        "itemTypes": {
+            "weapon": "Weapon",
+            "armor": "Armor",
+            "gear": "Gear",
+            "consumable": "Consumable"
+        },
         "hitpoints": {
             "label": "Hitpoints",
             "shortLabel": "HP"

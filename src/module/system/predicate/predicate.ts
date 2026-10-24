@@ -11,6 +11,10 @@ export class Predicate {
             return rollOptions.includes(part);
         }
 
+        if (Array.isArray(part)) {
+            return part.every((p) => this.evaluatePart(p, rollOptions));
+        }
+
         if (typeof part === "object" && part !== null) {
             const keys = Object.keys(part);
             if (keys.length !== 1) return false;
@@ -19,6 +23,7 @@ export class Predicate {
             const data = (part as PredicatePart)[op];
 
             switch (op) {
+                // Allow "and" evaluation of either an array or a key of "and"
                 case "and": {
                     return Array.isArray(data) && data.every((d) => this.evaluatePart(d, rollOptions));
                 }

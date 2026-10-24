@@ -244,10 +244,6 @@ export class AttackStatistic extends Statistic {
 
     attack(context: AttackContext = {}) {
         const target = game.user.targets.first() ?? null;
-
-        const rv =
-            target instanceof foundry.canvas.placeables.Token && target.actor ? target.actor.rv.physical.total : 0;
-
         const testContext: TestContext = {
             roller: this.actor,
             target: target instanceof foundry.canvas.placeables.Token ? target.document : undefined,
@@ -256,9 +252,9 @@ export class AttackStatistic extends Statistic {
             rollOptions: this.rollOptions,
             skill: this.skill,
             type: "attack",
-            dv: rv,
             dealsDamage: true,
             mmp: context.mmp,
+            against: "physical",
         };
 
         new Test(testContext).roll();

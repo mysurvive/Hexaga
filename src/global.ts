@@ -6,6 +6,7 @@ import { AspectData } from "./module/item/character-options/aspect/aspectData.ts
 import { AspectNodeData } from "./module/item/character-options/aspect/aspectNodeData.ts";
 import { HeritageData } from "./module/item/character-options/heritage/data.ts";
 import { ProfessionData } from "./module/item/character-options/profession/data.ts";
+import { ArmorData } from "./module/item/equipment/armor/armorData.ts";
 import { WeaponData } from "./module/item/equipment/weapon/weaponData.ts";
 
 declare global {
@@ -56,6 +57,7 @@ declare module "fvtt-types/configuration" {
             aspect: typeof AspectData;
             aspectNode: typeof AspectNodeData;
             weapon: typeof WeaponData;
+            armor: typeof ArmorData;
         };
     }
 }

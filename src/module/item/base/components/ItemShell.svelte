@@ -1,10 +1,11 @@
-<script lang="ts">
+<script>
     import { setContext } from "svelte";
     import { writable } from "svelte/store";
     import NavTabs from "../../../shared/components/NavTabs.svelte";
     import TabDescription from "./tabs/TabDescription.svelte";
     import TabFoundationalCharacterOptions from "../../character-options/components/tabs/TabFoundational.svelte";
     import TabFoundationalWeapon from "../../equipment/weapon/components/tabs/TabFoundational.svelte";
+    import TabFoundationalArmor from "../../equipment/armor/components/tabs/TabFoundational.svelte";
     import TabConfig from "./tabs/TabConfig.svelte";
 
     export let item;
@@ -20,7 +21,7 @@
         { id: "config", labelPath: "hexaga.item.sheet.tabs.config" },
     ];
 
-    async function updateItem(path: string, event: Event) {
+    async function updateItem(path, event) {
         const target = event.currentTarget;
 
         try {
@@ -42,6 +43,8 @@
         <TabFoundationalCharacterOptions {item} />
     {:else if item.type === "weapon"}
         <TabFoundationalWeapon {item} />
+    {:else if item.type === "armor"}
+        <TabFoundationalArmor {item} />
     {/if}
 {:else if $tabStore === "config"}
     <TabConfig {item} />

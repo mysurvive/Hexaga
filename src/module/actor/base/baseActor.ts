@@ -1,3 +1,5 @@
+import { ItemHex } from "../../item/base/base.ts";
+import { ApplyDamageContext, DamageRollContext } from "../../system/dice/roller.ts";
 import { RuleElement } from "../../system/ruleElement/base.ts";
 import { RulesEngine } from "../../system/ruleElement/rulesEngine.ts";
 import {
@@ -15,6 +17,7 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
     declare intrinsics: Record<string, any>;
     declare hp: HitpointStatistic;
     declare maneuvers: AttackStatistic[];
+    public wornArmor: ItemHex<"armor"> | undefined = undefined;
     public rules: RuleElement[] = [];
 
     protected override async _preCreate(
@@ -93,32 +96,69 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
 
     override prepareDerivedData(): void {
         super.prepareDerivedData();
+
+        this.wornArmor = this.itemTypes.armor.filter((a) => a.system.equipped === true)[0];
+        this.system.rollOptions.all[`self:armored`] = this.wornArmor !== undefined;
+        if (this.wornArmor !== undefined) {
+            const armorOptions = this.wornArmor.system.getRollOptions();
+            for (const option of armorOptions) {
+                this.system.rollOptions.all[option] = true;
+            }
+        }
+    }
+
+    async applyDamage(context: ApplyDamageContext) {
+        let totalDamage = context.totalDamage;
+        let durabilityDamage = 0;
+
+        if (context.rollType === "damage" && context.against === "physical") {
+            if (!this.wornArmor) {
+                totalDamage = -totalDamage;
+            } else {
+                durabilityDamage =
+                    Math.max(
+                        0,
+                        totalDamage < this.wornArmor.system.ablation ? totalDamage : this.wornArmor.system.ablation,
+                    ) * -1;
+                totalDamage -= durabilityDamage;
+                totalDamage = totalDamage * -1;
+                this.wornArmor.system.modifyDurability(durabilityDamage);
+            }
+        } else {
+        }
+        const chatFlavor = `${this.name}: ${totalDamage} hp. ${this.wornArmor ? `\n ${this.wornArmor.name}: ${durabilityDamage} durability.` : ""}`;
+        await ChatMessage.create({ flavor: chatFlavor });
+        await this.modifyHealth(totalDamage);
     }
 
     // Incredibly simplified for the time being
     async modifyHealth(input: string | number): Promise<void> {
-        const stringInput = String(input).trim();
-        if (!stringInput) return;
-
-        const regex = /([+-])\s*(\d+)/;
-        const match = stringInput.match(regex);
-
         let finalHp = this.system.intrinsic.hp.current;
-
-        if (match) {
-            const sign = match[1];
-            const amount = Number(match[2]);
-
-            if (sign === "+") {
-                finalHp += amount;
-            } else {
-                finalHp -= amount;
-            }
+        if (typeof input === "number") {
+            finalHp += input;
         } else {
-            const absoluteChange = Number(stringInput.replace(/[^\d.-]/g, ""));
-            if (!isNaN(absoluteChange)) finalHp = absoluteChange;
+            const stringInput = String(input).trim();
+            if (!stringInput) return;
+
+            const regex = /([+-])\s*(\d+)/;
+            const match = stringInput.match(regex);
+
+            if (match) {
+                const sign = match[1];
+                const amount = Number(match[2]);
+
+                if (sign === "+") {
+                    finalHp += amount;
+                } else {
+                    finalHp -= amount;
+                }
+            } else {
+                const absoluteChange = Number(stringInput.replace(/[^\d.-]/g, ""));
+                if (!isNaN(absoluteChange)) finalHp = absoluteChange;
+            }
         }
         finalHp = Math.clamp(finalHp, 0, this.hp.max);
+        if (finalHp === this.system.intrinsic.hp.current) return;
         await this.update({ system: { intrinsic: { hp: { current: finalHp } } } });
     }
 

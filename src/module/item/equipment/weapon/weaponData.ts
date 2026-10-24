@@ -19,7 +19,8 @@ export class WeaponData extends ItemHexData<WeaponDataSchema> {
         rollOptions.push(
             ...Object.entries({
                 [`equipped`]: this.equipped,
-                [`equipped:id:${this.parent.id}`]: this.equipped,
+                [`equipped:${this.slug}`]: this.equipped,
+                [`equipped:${this.parent.id}`]: this.equipped,
                 [`damage:dice:${totalDmp}`]: true,
             })
                 .filter(([_key, entry]) => entry === true)

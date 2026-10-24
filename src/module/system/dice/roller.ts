@@ -19,6 +19,7 @@ export interface TestRollContext {
     modifiers: Modifier[];
     dealsDamage: boolean;
     rollType: "attack" | "test";
+    against?: "physical" | "mental" | "personality";
 }
 
 export class TestRoll {
@@ -32,6 +33,8 @@ export class TestRoll {
     declare dealsDamage: boolean;
     declare testType;
     declare flatSuccesses;
+    declare target;
+    declare against;
 
     public results: number[] = [];
     public rolledNetSuccesses = 0;
@@ -52,6 +55,8 @@ export class TestRoll {
         this.item = context.item;
         this.dealsDamage = context.dealsDamage;
         this.testType = context.rollType;
+        this.target = context.target;
+        this.against = context.against;
 
         const successModifications = context.modifiers.reduce((total: number, current: Modifier) => {
             return current.modifies === "flat" ? (total += current.modifier) : total;
@@ -138,11 +143,13 @@ export class TestRoll {
                 hexaga: {
                     rollContext: {
                         actorId: this.roller.id,
+                        target: this.target,
                         itemId: this.item ? this.item.id : null,
                         successesAfterDV: this.successesAfterDV,
                         successLevel: this.successLevel,
                         isCriticalFailure: this.isCriticalFailure,
                         pass: this.pass,
+                        against: this.against,
                     },
                 },
             },
@@ -152,11 +159,21 @@ export class TestRoll {
 
 export interface DamageRollContext {
     roller: ActorHex;
+    target: { token: TokenDocument; actor: ActorHex } | null;
     modifiers?: Modifier[];
     item?: ItemHex<"weapon">;
     skill?: SkillStatistic;
     rollType: "damage" | "healing";
     successLevel: number;
+    against: "physical" | "mental" | "personality";
+}
+
+export interface ApplyDamageContext {
+    rollType: "damage" | "healing";
+    itemId: string;
+    totalDamage: number;
+    results: number[];
+    against?: "physical" | "mental" | "personality";
 }
 
 export class DamageRoll {
@@ -165,6 +182,8 @@ export class DamageRoll {
     declare poolModifications;
     declare successLevel;
     declare title;
+    declare rollType;
+    declare against;
 
     public roll!: Roll;
     public results: number[] = [];
@@ -173,6 +192,8 @@ export class DamageRoll {
         this.title = args.title ?? "Damage Roll";
         this.item = context.item;
         this.successLevel = context.successLevel;
+        this.rollType = context.rollType ?? "damage";
+        this.against = context.against;
         if (context.modifiers) {
             this.flatModifications = context.modifiers.reduce((total: number, current: Modifier) => {
                 return current.modifies === "flat" ? (total += current.modifier) : total;
@@ -193,7 +214,7 @@ export class DamageRoll {
         const damagePools = [basePool, ...additionalPools];
         const formula = damagePools
             .map((p) => {
-                return `(${p.damagePool}d6${p.flatDamage && p.flatDamage > 0 ? `+${p.flatDamage}` : ""})[${p.damageType}]`;
+                return `(${p.damagePool}d6${p.flatDamage && p.flatDamage > 0 ? `+${p.flatDamage}` : p.flatDamage && p.flatDamage < 0 ? `${p.flatDamage}` : ""})[${p.damageType}]`;
             })
             .join(" + ");
 
@@ -208,7 +229,6 @@ export class DamageRoll {
                 }
             }) ?? ([] as number[]);
 
-        console.log(this.roll);
         return this;
     }
 
@@ -230,10 +250,12 @@ export class DamageRoll {
             flags: {
                 hexaga: {
                     rollContext: {
-                        type: "damageReceipt",
+                        rollType: this.rollType,
+                        type: "damage",
                         itemId: this.item?.id,
                         totalDamage: this.roll.total,
                         results: this.results,
+                        against: this.against,
                     },
                 },
             },
