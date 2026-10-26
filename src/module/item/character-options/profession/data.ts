@@ -58,6 +58,9 @@ const defineProfessionSchema = () => {
                 }),
             }),
             aspects: new fields.DocumentUUIDField(),
+            expertise: new fields.SchemaField({
+                allowed: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
+            }),
         }),
     };
 };

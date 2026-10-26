@@ -1,3 +1,4 @@
+<!-- TabFoundational.svelte -->
 <script>
     import OptionSelection from "../parts/OptionSelection.svelte";
 
@@ -27,10 +28,25 @@
                 localizationPrefix="hexaga"
                 path="system.improvements.skills.selected"
                 countPath="system.improvements.skills.allowed"
-                choices={improvements.skills.choices ?? []}
-                selected={improvements.skills.selected ?? []}
-                amount={improvements.skills.allowed ?? 0}
+                choices={item.system?.improvements?.skills?.choices ?? []}
+                selected={item.system?.improvements?.skills?.selected ?? []}
+                amount={item.system?.improvements?.skills?.allowed ?? 0}
+            />
+            <OptionSelection
+                {item}
+                titleKey="expertise"
+                localizationPrefix="hexaga"
+                path="system.improvements.expertise.selected"
+                countPath="system.improvements.expertise.allowed"
+                amount={item.system?.improvements?.expertise?.allowed ?? 0}
             />
         {/if}
     </div>
 </section>
+
+<style lang="scss">
+    .item-tab {
+        overflow-y: auto;
+        padding: 4px;
+    }
+</style>

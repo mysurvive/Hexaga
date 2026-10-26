@@ -16,7 +16,7 @@ export class ArmorData extends ItemHexData<ArmorDataSchema> {
                 [`ablation:${this.ablation}`]: true,
             })
                 .filter(([_key, entry]) => entry === true)
-                .map(([_key, entry]) => `${prefix}:${entry}`),
+                .map(([key, _entry]) => `${prefix}:${key}`),
         );
 
         return rollOptions;

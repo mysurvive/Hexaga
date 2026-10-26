@@ -10,8 +10,8 @@
 
 <section class="hero-tab">
     <div class="scroll-container">
-        <BackgroundOptions {actor} option={heritage} optionType="heritage" titleKey="attributes" />
-        <BackgroundOptions {actor} option={profession} optionType="profession" titleKey="skills" />
+        <BackgroundOptions {actor} option={heritage} optionType="heritage" titleKey={["attributes"]} />
+        <BackgroundOptions {actor} option={profession} optionType="profession" titleKey={["skills", "expertise"]} />
         {#each Array(actor.system.level) as _, index}
             <LevelOptionsShell {actor} level={index + 1} />
         {/each}

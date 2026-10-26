@@ -1,5 +1,5 @@
 import { ItemHex } from "../../item/base/base.ts";
-import { ApplyDamageContext, DamageRollContext } from "../../system/dice/roller.ts";
+import { ApplyDamageContext } from "../../system/dice/roller.ts";
 import { RuleElement } from "../../system/ruleElement/base.ts";
 import { RulesEngine } from "../../system/ruleElement/rulesEngine.ts";
 import {
@@ -16,6 +16,7 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
     declare rv: Record<string, ResistanceValueStatistic>;
     declare intrinsics: Record<string, any>;
     declare hp: HitpointStatistic;
+    declare expertise: Record<string, string>[];
     declare maneuvers: AttackStatistic[];
     public wornArmor: ItemHex<"armor"> | undefined = undefined;
     public rules: RuleElement[] = [];
@@ -43,32 +44,41 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
         const [_parent, collection, documents] = args;
         if (collection !== "items") return;
 
-        // Add the flags from heritage and profession items to the improvements object
+        const improvements = foundry.utils.deepClone(this.system.improvements ?? []);
+        let changed = false;
+
         for (const document of documents) {
+            const selections = document.getFlag("hexaga", "selections") ?? {};
+            const attributes = Array.isArray(selections.attributes) ? selections.attributes : [];
+            const skills = Array.isArray(selections.skills) ? selections.skills : [];
+            const expertise = Array.isArray(selections.expertise) ? selections.expertise : [];
             if (document.type === "heritage") {
-                const flags = document.getFlag("hexaga", "selections");
-                const improvements = this.system.improvements;
                 const heritageImprovements = improvements.find((i) => i.source === "heritage");
                 if (heritageImprovements) {
-                    heritageImprovements.attributes = flags;
+                    heritageImprovements.attributes = attributes;
+                    heritageImprovements.skills = skills;
+                    heritageImprovements.expertise = expertise;
                 } else {
-                    improvements.push({ source: "heritage", attributes: flags, skills: [] });
+                    improvements.push({ source: "heritage", attributes, skills, expertise });
                 }
-
-                this.update({ system: { improvements: improvements } });
+                changed = true;
             }
+
             if (document.type === "profession") {
-                const flags = document.getFlag("hexaga", "selections");
-                const improvements = this.system.improvements;
                 const professionImprovements = improvements.find((i) => i.source === "profession");
                 if (professionImprovements) {
-                    professionImprovements.skills = flags;
+                    professionImprovements.attributes = attributes;
+                    professionImprovements.skills = skills;
+                    professionImprovements.expertise = expertise;
                 } else {
-                    improvements.push({ source: "profession", attributes: [], skills: flags });
+                    improvements.push({ source: "profession", attributes, skills, expertise });
                 }
-
-                this.update({ system: { improvements: improvements } });
+                changed = true;
             }
+        }
+
+        if (changed) {
+            this.update({ system: { improvements: improvements } });
         }
     }
 

@@ -1,4 +1,5 @@
 <script>
+    import { onMount } from "svelte";
     export let item;
     export let titleKey;
     export let localizationPrefix;
@@ -63,25 +64,27 @@
         type="number"
         id="count-{titleKey}"
         min="0"
-        ,
         value={amount}
         on:change={updateAllowed}
     />
-    <div class="choices">
-        {#each choices as choice}
-            <div class="flex align-center">
-                <input
-                    type="checkbox"
-                    id={choice}
-                    name={titleKey}
-                    value={choice}
-                    checked={localSelected.includes(choice)}
-                    on:change={(e) => changeSelection(choice, e)}
-                />
-                <label for={choice}>{_loc(`${localizationPrefix}.${titleKey}.${choice}.label`)}</label>
-            </div>
-        {/each}
-    </div>
+
+    {#if choices && choices.length > 0}
+        <div class="choices">
+            {#each choices as choice}
+                <div class="flex align-center">
+                    <input
+                        type="checkbox"
+                        id={choice}
+                        name={titleKey}
+                        value={choice}
+                        checked={localSelected.includes(choice)}
+                        on:change={(e) => changeSelection(choice, e)}
+                    />
+                    <label for={choice}>{_loc(`${localizationPrefix}.${titleKey}.${choice}.label`)}</label>
+                </div>
+            {/each}
+        </div>
+    {/if}
 </div>
 
 <style>

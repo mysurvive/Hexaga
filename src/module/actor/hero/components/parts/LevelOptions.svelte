@@ -1,18 +1,28 @@
 <script>
+    import TagifyInput from "../../../../shared/components/TagifyInput.svelte";
+
     export let actor;
     export let level;
     export let optionType;
 
     const grantedLevelImprovements = CONFIG.hexaga.improvements[level];
     const rankCap = CONFIG.hexaga.maxRank.findLast((item) => item.level <= level).cap;
+    const witBonus = actor.system.attributes.wit.total;
+    $: allowedImprovements =
+        optionType === "skills" ? grantedLevelImprovements.skills + witBonus : grantedLevelImprovements[optionType];
 
     $: chosenLevelImprovements = actor.system.improvements?.find((i) => i.source === `level${level}`) ?? {
         source: `level${level}`,
         attributes: [],
         skills: [],
+        expertise: [],
     };
-
     $: allLevelImprovements = actor.system.improvements ?? [];
+    $: improvementsPicked =
+        optionType === "skills"
+            ? chosenLevelImprovements.skills.length + chosenLevelImprovements.expertise.length
+            : chosenLevelImprovements.attributes.length;
+    $: remainingPicks = allowedImprovements - improvementsPicked;
 
     function getCount(option, improvements) {
         return chosenLevelImprovements[optionType].reduce(
@@ -36,21 +46,12 @@
     }
 
     function atLevelCap(type) {
-        return chosenLevelImprovements[type].length >= grantedLevelImprovements[type];
+        return remainingPicks <= 0;
     }
 
     async function increaseChoice(option) {
-        const picks = Array.isArray(actor.system.improvements) ? [...actor.system.improvements] : [];
-        let targetPick = picks.find((p) => p.source === `level${level}`);
+        const { targetPick, picks } = getLevelImprovements(option);
 
-        if (!targetPick) {
-            targetPick = { source: `level${level}`, attributes: [], skills: [] };
-            picks.push(targetPick);
-        } else {
-            targetPick = { ...targetPick, attributes: [...targetPick.attributes], skills: [...targetPick.skills] };
-            const targetIndex = picks.findIndex((p) => p.source === `level${level}`);
-            picks[targetIndex] = targetPick;
-        }
         targetPick[optionType].push(option);
 
         const updates = {
@@ -61,14 +62,7 @@
     }
 
     async function decreaseChoice(option) {
-        const picks = Array.isArray(actor.system.improvements) ? [...actor.system.improvements] : [];
-        let targetPick = picks.find((p) => p.source === `level${level}`);
-
-        if (!targetPick || !targetPick[optionType].includes(option)) return;
-
-        targetPick = { ...targetPick, attributes: [...targetPick.attributes], skills: [...targetPick.skills] };
-        const targetIndex = picks.findIndex((p) => p.source === `level${level}`);
-        picks[targetIndex] = targetPick;
+        const { targetPick, picks } = getLevelImprovements(option);
 
         const stringIndex = targetPick[optionType].indexOf(option);
         if (stringIndex > -1) {
@@ -79,17 +73,43 @@
 
         await actor.update(updates);
     }
+
+    function getLevelImprovements() {
+        const picks = Array.isArray(actor.system.improvements) ? [...actor.system.improvements] : [];
+        let targetPick = picks.find((p) => p.source === `level${level}`);
+
+        if (!targetPick) {
+            targetPick = { source: `level${level}`, attributes: [], skills: [], expertise: [] };
+            picks.push(targetPick);
+        } else {
+            targetPick = {
+                ...targetPick,
+                attributes: [...targetPick.attributes],
+                skills: [...targetPick.skills],
+                expertise: [...targetPick.expertise],
+            };
+            const targetIndex = picks.findIndex((p) => p.source === `level${level}`);
+            picks[targetIndex] = targetPick;
+        }
+
+        return { targetPick, picks };
+    }
 </script>
 
 <details class="improvement-item">
     <summary>
-        <span>{window.game.i18n.localize(`hexaga.${optionType}.label`)}</span
-        >{#if chosenLevelImprovements[optionType].length < grantedLevelImprovements[optionType]}<span
+        <span>{window.game.i18n.localize(`hexaga.${optionType}.label`)}</span>{#if remainingPicks > 0}<span
                 >Improvement Available!</span
             >{/if}
     </summary>
     <div class="content">
-        <span>Select {grantedLevelImprovements[optionType]} from the following:</span>
+        <span>
+            {#if optionType === "attributes"}
+                Select {allowedImprovements} from the following:
+            {:else if optionType === "skills"}
+                Select {allowedImprovements} from skills or expertise ({witBonus} from Wit):
+            {/if}
+        </span>
         <div class="choice-block">
             {#each Object.entries(actor.system[optionType]) as [option, data]}
                 <div class="flex-row">
@@ -118,10 +138,29 @@
                 </div>
             {/each}
         </div>
+        {#if optionType === "skills"}
+            <div class="label">Expertise</div>
+            <TagifyInput
+                allowed={remainingPicks}
+                selections={chosenLevelImprovements.expertise}
+                externalBlacklist={actor.expertise.map((s) => (typeof s === "object" ? s.slug : s))}
+                onChange={async (values) => {
+                    const { targetPick, picks } = getLevelImprovements();
+                    targetPick["expertise"] = values;
+                    const update = { "system.improvements": picks };
+                    actor.update(update);
+                }}
+            />
+        {/if}
     </div>
 </details>
 
 <style lang="scss">
+    .label {
+        margin-top: 20px;
+        font-weight: bold;
+        font-size: 18px;
+    }
     .choice-block {
         display: grid;
         grid-template-columns: repeat(6, 1fr);

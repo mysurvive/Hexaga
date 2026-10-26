@@ -72,6 +72,14 @@
             </div>
         </div>
     {/each}
+    <div class="expertise-group">
+        <span class="attribute-group-label-hz"> Expertise </span>
+        <div class="expertise-tags">
+            {#each actor.expertise as expertise}
+                <span class="tag">{expertise.value}</span>
+            {/each}
+        </div>
+    </div>
 </section>
 
 <style lang="scss">
@@ -81,8 +89,37 @@
         gap: 5px;
         margin-top: 5px;
 
+        .attribute-group-label-hz {
+            font-size: 20pt;
+            background-color: rgb(56, 56, 56);
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .expertise-group {
+            outline: 2px solid white;
+            .expertise-tags {
+                margin: 10px;
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                .tag {
+                    border: 1px solid white;
+                    padding: 4px;
+                    border-radius: 10px;
+                    font-size: 10px;
+                    text-transform: uppercase;
+                    font-weight: 100;
+                    margin: 2px;
+                }
+            }
+        }
+
         .attribute-group {
-            outline: 2px solid black;
+            outline: 2px solid white;
             height: 320px;
             display: grid;
             grid-template-columns: auto 1fr;
@@ -106,9 +143,10 @@
                 height: 100%;
                 display: flex;
                 flex-direction: column;
-                padding: 5px;
+                padding: 10px;
                 overflow: hidden;
                 margin-left: 5px;
+                justify-content: space-around;
 
                 .defenses {
                     display: flex;

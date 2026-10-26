@@ -49,6 +49,7 @@ export class HeroData extends ActorHexData<HeroSchema> {
 
         // Clear Memory
         this.parent.skills = {};
+        this.parent.expertise = [];
         this.parent.rv = {};
         this.parent.intrinsics = {};
         this.parent.maneuvers = [];
@@ -65,6 +66,11 @@ export class HeroData extends ActorHexData<HeroSchema> {
                     rank: this.skills[skill as keyof typeof this.skills].rank,
                 });
             }
+        }
+
+        this.parent.expertise = this.gatherExpertise();
+        for (const exp of this.parent.expertise) {
+            this.rollOptions.all[`expertise:${exp.slug}`] = true;
         }
 
         for (const weapon of this.parent.itemTypes.weapon) {
@@ -124,6 +130,22 @@ export class HeroData extends ActorHexData<HeroSchema> {
             label: "hexaga.hitpoints.label",
             slug: "hp",
         });
+    }
+
+    gatherExpertise(): any[] {
+        const expertise = new Set();
+        for (const item of this.parent.items) {
+            if (item.flags.hexaga?.selections?.expertise) {
+                item.flags.hexaga.selections.expertise.forEach((e: Record<string, string>) => {
+                    expertise.add(e);
+                });
+            }
+        }
+        for (const improvement of this.improvements) {
+            improvement.expertise?.forEach((e) => expertise.add(e));
+        }
+
+        return Array.from(expertise);
     }
 
     prepareBaselineStats(): void {
@@ -186,6 +208,14 @@ const defineHeroSchema = () => {
                     required: false,
                     nullable: true,
                 }),
+                expertise: new fields.ArrayField(
+                    new fields.SchemaField({ value: new fields.StringField(), slug: new fields.StringField() }),
+                    {
+                        required: false,
+                        nullable: true,
+                        initial: [],
+                    },
+                ),
             }),
         ),
     };

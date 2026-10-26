@@ -24,7 +24,7 @@ export class WeaponData extends ItemHexData<WeaponDataSchema> {
                 [`damage:dice:${totalDmp}`]: true,
             })
                 .filter(([_key, entry]) => entry === true)
-                .map(([_key, entry]) => `${prefix}:${entry}`),
+                .map(([key, _entry]) => `${prefix}:${key}`),
         );
         return rollOptions;
     }
