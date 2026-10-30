@@ -10,7 +10,7 @@ export class HeritageData extends ItemHexData<HeritageSchema> {
 
     override async _preCreate(
         data: foundry.abstract.TypeDataModel.ParentAssignmentType<HeritageSchema, ItemHex>,
-        options: foundry.abstract.types.DatabaseCreateOperation,
+        options: foundry.abstract.DatabaseBackend.CreateOperation,
         user: Override<User, object>,
     ): Promise<boolean | void> {
         const allowed = await super._preCreate(data, options, user);

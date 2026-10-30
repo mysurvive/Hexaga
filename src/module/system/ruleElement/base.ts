@@ -2,6 +2,7 @@ import { ItemHex } from "../../item/base/base.ts";
 import { Predicate } from "../predicate/predicate.ts";
 import { RuleElementData } from "./data.ts";
 import { FlatModifierConfig } from "./flatModifier.ts";
+import { GrantItemConfig } from "./grant.ts";
 
 export abstract class RuleElement<TConfig extends RuleElementConfig = RuleElementConfig> {
     constructor(
@@ -24,4 +25,4 @@ export abstract class RuleElement<TConfig extends RuleElementConfig = RuleElemen
     }
 }
 
-type RuleElementConfig = FlatModifierConfig;
+type RuleElementConfig = FlatModifierConfig | GrantItemConfig;

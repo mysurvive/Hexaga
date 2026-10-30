@@ -21,6 +21,37 @@ export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<S
         }
     }
 
+    protected override async _onCreate(
+        data: Item.CreateData,
+        options: Item.Database.OnCreateOptions,
+        userId: string,
+    ): Promise<void> {
+        await super._onCreate(data, options, userId);
+        if (!this.actor || game.user.id !== userId) return;
+        const grantRules = this.runtimeRules.filter((r) => r.data.key === "GrantItem");
+        if (grantRules.length > 0) {
+            for (const rule of grantRules) {
+                const uuid = rule.data.config.uuid;
+                if (!uuid || typeof uuid !== "string") continue;
+                const grantedItem = await fromUuid(uuid);
+                if (!grantedItem || !(grantedItem instanceof ItemHex)) continue;
+                const grantedItemObj = grantedItem.toObject();
+                foundry.utils.setProperty(grantedItemObj, "flags.hexaga.grantedBy", this.uuid);
+                this.actor.createEmbeddedDocuments("Item", [grantedItemObj]);
+            }
+        }
+    }
+
+    protected override async _onDelete(options: Item.Database.OnDeleteOptions, userId: string): Promise<void> {
+        await super._onDelete(options, userId);
+
+        if (!this.actor || game.user.id !== userId) return;
+        const grantedItems = this.actor.items
+            .filter((i) => i.getFlag("hexaga", "grantedBy") === this.uuid)
+            .map((i) => i._id);
+        if (grantedItems.length > 0) await this.actor.deleteEmbeddedDocuments("Item", grantedItems);
+    }
+
     get slug() {
         return this.system.slug;
     }

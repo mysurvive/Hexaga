@@ -1,12 +1,19 @@
 import { HeroSheet } from "../module/actor/hero/HeroSheet.ts";
 import { ItemSheetHex } from "../module/item/base/sheet.ts";
-import { ITEM_TYPES } from "../module/item/itemConfig.ts";
+import { AspectTreeSheet } from "../module/item/character-options/aspect/aspectTreeSheet.ts";
+import { BASIC_ITEMS } from "../module/item/itemConfig.ts";
 const dsc = foundry.applications.apps.DocumentSheetConfig;
 
 export function registerSheets(): void {
     dsc.registerSheet(Item, "hexaga", ItemSheetHex, {
-        label: "Option",
-        types: ITEM_TYPES,
+        label: "ItemHex",
+        types: BASIC_ITEMS,
+        makeDefault: true,
+    });
+
+    dsc.registerSheet(Item, "hexaga", AspectTreeSheet, {
+        label: "Aspect",
+        types: ["aspect"],
         makeDefault: true,
     });
 

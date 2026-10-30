@@ -1,6 +1,7 @@
 import { ATTACK_SKILLS, DAMAGE_ICONS, DAMAGE_TYPES } from "../module/item/equipment/weapon/weaponConfig.ts";
 import { ITEM_TYPES } from "../module/item/itemConfig.ts";
 import { FlatModifier } from "../module/system/ruleElement/flatModifier.ts";
+import { GrantItem } from "../module/system/ruleElement/grant.ts";
 import { RuleElementConstructor } from "../module/system/ruleElement/types.ts";
 
 const HEXAGA_CHARACTER_SKILLS = {
@@ -49,7 +50,7 @@ const MAX_RANK_BY_LEVEL = [
     { level: 15, cap: 5 },
 ];
 
-const RULE_ELEMENTS: Record<string, RuleElementConstructor> = { FlatModifier: FlatModifier };
+const RULE_ELEMENTS: Record<string, RuleElementConstructor> = { FlatModifier: FlatModifier, GrantItem: GrantItem };
 
 export const HEXAGACONFIG = {
     skills: HEXAGA_CHARACTER_SKILLS,

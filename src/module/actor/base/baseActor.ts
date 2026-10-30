@@ -9,6 +9,7 @@ import {
     SkillStatistic,
 } from "../../system/statistic/statistic.ts";
 import { ActorSynthetics } from "../synthetics.ts";
+import type { AspectData } from "../../item/character-options/aspect/aspectData.ts";
 
 export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Actor<SubType> {
     declare public synthetics: ActorSynthetics;
@@ -52,14 +53,27 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
             const attributes = Array.isArray(selections.attributes) ? selections.attributes : [];
             const skills = Array.isArray(selections.skills) ? selections.skills : [];
             const expertise = Array.isArray(selections.expertise) ? selections.expertise : [];
+            const aspects = Array.isArray(document.system?.improvements?.aspects)
+                ? document.system.improvements.aspects
+                : document.system?.improvements?.aspects
+                  ? [document.system.improvements.aspects]
+                  : [];
             if (document.type === "heritage") {
                 const heritageImprovements = improvements.find((i) => i.source === "heritage");
                 if (heritageImprovements) {
                     heritageImprovements.attributes = attributes;
                     heritageImprovements.skills = skills;
                     heritageImprovements.expertise = expertise;
+                    if (!Array.isArray(heritageImprovements.aspects)) {
+                        heritageImprovements.aspects = [];
+                    }
+                    for (const aspect of aspects) {
+                        if (!heritageImprovements.aspects.includes(aspect)) {
+                            heritageImprovements.aspects.push(aspect);
+                        }
+                    }
                 } else {
-                    improvements.push({ source: "heritage", attributes, skills, expertise });
+                    improvements.push({ source: document.type, attributes, skills, expertise, aspects: [...aspects] });
                 }
                 changed = true;
             }
@@ -70,8 +84,16 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
                     professionImprovements.attributes = attributes;
                     professionImprovements.skills = skills;
                     professionImprovements.expertise = expertise;
+                    if (!Array.isArray(professionImprovements.aspects)) {
+                        professionImprovements.aspects = [];
+                    }
+                    for (const aspect of aspects) {
+                        if (!professionImprovements.aspects.includes(aspect)) {
+                            professionImprovements.aspects.push(aspect);
+                        }
+                    }
                 } else {
-                    improvements.push({ source: "profession", attributes, skills, expertise });
+                    improvements.push({ source: document.type, attributes, skills, expertise, aspects: [...aspects] });
                 }
                 changed = true;
             }
@@ -79,6 +101,50 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
 
         if (changed) {
             this.update({ system: { improvements: improvements } });
+        }
+    }
+
+    protected override _onDeleteDescendantDocuments(
+        parent: any,
+        collection: any,
+        documents: any[],
+        ids: any[],
+        options: any,
+        userId: any,
+    ): void {
+        super._onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId);
+
+        if (collection !== "items" || !documents || !documents.length) return;
+
+        const itemsToDeleteIds: string[] = [];
+
+        const deletedItems = documents as unknown as Item[];
+
+        for (const item of deletedItems) {
+            if (item && item.type === "aspect") {
+                const aspectModel = item.system as unknown as AspectData;
+                const aspectSlug = aspectModel.slug;
+                if (!aspectSlug) continue;
+
+                for (const ownedItem of this.items) {
+                    if (ownedItem.type === "aspectNode") {
+                        const nodeAspectSlug = (ownedItem.system as any).aspectSlug;
+
+                        if (nodeAspectSlug === aspectSlug) {
+                            itemsToDeleteIds.push(ownedItem.id!);
+                        }
+                    }
+                }
+            }
+
+            if ((item && item.type === "heritage") || item.type === "profession") {
+                const index = this.system.improvements.findIndex((i) => i.source === item.type);
+                this.system.improvements.splice(index, 1);
+            }
+        }
+
+        if (itemsToDeleteIds.length > 0) {
+            void this.deleteEmbeddedDocuments("Item", itemsToDeleteIds);
         }
     }
 

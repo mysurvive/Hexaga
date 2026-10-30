@@ -64,7 +64,8 @@
             "specificLevel": "Level {level}"
         },
         "ruleElements": {
-            "FlatModifier": { "label": "Flat Modifier" }
+            "FlatModifier": { "label": "Flat Modifier" },
+            "GrantItem": { "label": "Grant Item" }
         },
         "skills": {
             "label": "Skills",

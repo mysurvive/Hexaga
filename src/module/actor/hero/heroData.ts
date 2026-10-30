@@ -180,10 +180,10 @@ export class HeroData extends ActorHexData<HeroSchema> {
             this.rollOptions.all[`${skill}:rank:${rank}`] = true;
         }
 
-        for (const aspect of this.parent.itemTypes.aspect ?? []) {
-            const count = aspect.system.pointsSpent;
-            this.rollOptions.all[`aspect:${aspect.system.slug}:count:${count}`] = true;
-        }
+        // for (const aspect of this.parent.itemTypes.aspect ?? []) {
+        //     const count = aspect.system.pointsSpent;
+        //     this.rollOptions.all[`aspect:${aspect.system.slug}:count:${count}`] = true;
+        // }
     }
 }
 
@@ -216,6 +216,11 @@ const defineHeroSchema = () => {
                         initial: [],
                     },
                 ),
+                aspects: new fields.ArrayField(new fields.DocumentUUIDField(), {
+                    required: false,
+                    nullable: true,
+                    initial: [],
+                }),
             }),
         ),
     };

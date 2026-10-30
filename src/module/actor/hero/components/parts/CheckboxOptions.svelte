@@ -32,7 +32,6 @@
         let newSelections = [...selectedChoices];
 
         if (isChecked) {
-            console.log(improvements);
             if (!newSelections.includes(choice) && !(selectedChoices.length >= improvements?.allowed)) {
                 newSelections.push(choice);
             }

@@ -56,7 +56,7 @@
                         <span>Choose {improvements[tKey].allowed} expertise options:</span>
                         <TagifyInput
                             allowed={option.system.improvements.expertise.allowed -
-                                (option.flags?.hexaga?.selections?.expertise.length ?? 0)}
+                                (option.flags?.hexaga?.selections?.expertise?.length ?? 0)}
                             selections={option.flags?.hexaga?.selections?.expertise || []}
                             externalBlacklist={actor.expertise.map((s) => (typeof s === "object" ? s.slug : s))}
                             onChange={async (values) => await option.setFlag("hexaga", "selections.expertise", values)}
