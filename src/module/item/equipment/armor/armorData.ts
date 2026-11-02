@@ -37,7 +37,7 @@ const defineArmorSchema = () => {
             current: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
             max: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
         }),
-        requirements: new fields.SchemaField({}),
+        requirements: new fields.ArrayField(new fields.ObjectField(), { required: false, nullable: true }),
     };
 };
 

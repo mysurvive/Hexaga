@@ -11,6 +11,10 @@ const defineAspectNodeSchema = () => {
         ...ItemHexData.defineSchema(),
         templateUuid: new fields.StringField({ required: true, blank: true, initial: "" }),
         aspectSlug: new fields.StringField({ required: true, blank: true, initial: "" }),
+        level: new fields.SchemaField({
+            taken: new fields.NumberField(),
+            value: new fields.NumberField({ required: true, nullable: false, initial: 1 }),
+        }),
     };
 };
 

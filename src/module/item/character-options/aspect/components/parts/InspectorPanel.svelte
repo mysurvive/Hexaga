@@ -343,7 +343,7 @@
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-row total-yield-row">
-                        <span class="label">Total Vitality Bonus:</span>
+                        <span class="label">Total HP Bonus:</span>
                         <span class="value hp-total-badge">+{compiledTotalHpBonus} HP</span>
                     </div>
                 </div>

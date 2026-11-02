@@ -74,7 +74,7 @@
     on:drop={(e) => dispatch("sidebardrop", { event: e, rect: canvasElement.getBoundingClientRect() })}
     on:click|self={() => dispatch("deselect")}
     role="application"
-    aria-label="Talent Tree Canvas Workspace"
+    aria-label="Aspect Tree Canvas Workspace"
 >
     <svg class="tree-connections-svg">
         <defs>

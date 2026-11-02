@@ -10,16 +10,16 @@
     let tagifyInstance;
 
     function initializeTagify(node, currentAllowed) {
-        const initialValue = selections.map((s) => (typeof s === "object" ? s.slug : s)).join(", ");
+        const initialValue = selections ? selections.map((s) => (typeof s === "object" ? s.value : s)).join(", ") : "";
         node.value = initialValue;
-        const activeSelections = [...selections];
+        const activeSelections = selections ? [...selections] : undefined;
 
         const baseBlacklist = externalBlacklist || [];
-        const activeSelectionStrings = activeSelections.map((s) => (typeof s === "object" ? s.slug : s));
+        const activeSelectionStrings = activeSelections?.map((s) => (typeof s === "object" ? s.slug : s));
         const filteredBlacklist = baseBlacklist.filter((i) => !activeSelectionStrings.includes(i));
 
         tagifyInstance = new Tagify(node, {
-            maxTags: currentAllowed + selections.length,
+            maxTags: currentAllowed + (selections?.length ?? 0),
             blacklist: filteredBlacklist,
             addTagOn: ["enter"],
             pattern: null,
@@ -42,7 +42,7 @@
             const rawValue = e.detail.value;
             const parsedTags = rawValue ? JSON.parse(rawValue) : [];
 
-            if (parsedTags.length !== selections.length) {
+            if (parsedTags.length !== (selections?.length ?? 0)) {
                 await onChange(parsedTags);
             }
         });

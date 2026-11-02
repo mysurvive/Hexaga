@@ -4,6 +4,9 @@ import HeroShell from "./components/HeroShell.svelte";
 export class HeroSheet extends foundry.applications.sheets.ActorSheetV2 {
     private svelteComponent: SvelteComponent | null = null;
 
+    public activeTab: string = "character";
+    public currentLevelContext: number = 1;
+
     static override DEFAULT_OPTIONS = {
         classes: ["hexaga", "sheet", "actor"],
         tag: "form",
@@ -29,8 +32,37 @@ export class HeroSheet extends foundry.applications.sheets.ActorSheetV2 {
             target: content,
             props: {
                 actor: this.document,
+                sheetData: this,
             },
         });
+    }
+
+    protected override async _onDropItem(
+        event: DragEvent,
+        data: Item.Implementation,
+    ): Promise<Item.Implementation | null> {
+        if (!this.actor.isOwner) return Promise.reject("You can only drop items on an owned sheet.");
+        if (data.uuid === undefined || data.uuid === null) return Promise.reject("Invalid UUID");
+
+        const cleanData = { ...data, uuid: data.uuid };
+        const item = await Item.fromDropData(cleanData);
+        if (!item) return super._onDropItem(event, data);
+
+        if (item.type === "aspect" || item.type === "aspectNode") {
+            if (this.activeTab !== "aspects") {
+                ui.notifications.warn("Use the Aspects tab to manage aspects.");
+                return null;
+            }
+            const itemData = item.toObject();
+
+            foundry.utils.setProperty(itemData, "system.level.taken", this.currentLevelContext);
+
+            const returnItem = await Item.create(itemData, { parent: this.actor, render: true });
+
+            return returnItem ?? null;
+        }
+
+        return super._onDropItem(event, data);
     }
 
     protected override async _onClose(options: object): Promise<void> {

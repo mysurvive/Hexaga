@@ -3,36 +3,35 @@ import { ActorHex } from "./baseActor.ts";
 export class ActorHexData<Schema extends ActorHexSchema> extends foundry.abstract.TypeDataModel<Schema, ActorHex> {
     public rollOptions: Record<string, Record<string, boolean>> = {};
 
-    static override defineSchema(): ActorHexSchema {
+    static override defineSchema() {
         return defineActorSchema();
     }
 }
 
 const defineAttributeSchema = () => {
     return {
-        rank: new fields.NumberField({ required: true, nullable: false, initial: 0, persistent: false }),
+        rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
         label: new fields.StringField({ required: true }),
         group: new fields.StringField({ required: true }),
-        mod: new fields.NumberField({ required: true, initial: 0, nullable: false, persistent: false }),
+        mod: new fields.NumberField({ required: true, initial: 0, nullable: false }),
         breakdown: new fields.ArrayField(new fields.StringField(), {
             required: true,
             initial: [],
             nullable: false,
-            persistent: false,
         }),
-        total: new fields.NumberField({ required: true, initial: 0, nullable: false, persistent: false }),
+        total: new fields.NumberField({ required: true, initial: 0, nullable: false }),
     };
 };
 
 const defineSkillSchema = () => {
     return {
         rank: new fields.NumberField({ required: true, nullable: false, initial: 0 }),
-        mod: new fields.NumberField({ required: true, initial: 0, nullable: false, persistent: false }),
+        mod: new fields.NumberField({ required: true, initial: 0, nullable: false, persisted: false }),
         breakdown: new fields.ArrayField(new fields.StringField(), {
             required: true,
             initial: [],
             nullable: false,
-            persistent: false,
+            persisted: false,
         }),
     };
 };

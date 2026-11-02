@@ -6,7 +6,7 @@
 
 <section>
     <div class="title-left">
-        <span>{window.game.i18n.format("hexaga.level.specificLevel", { level: actor.system.level })}</span>
+        <span>{window.game.i18n.format("hexaga.level.specificLevel", { level: level })}</span>
         <hr />
     </div>
     {#if window.CONFIG.hexaga.improvements[level].attributes !== 0}

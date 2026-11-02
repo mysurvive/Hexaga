@@ -6,8 +6,9 @@
 
     export let item;
     export let isEditable = false;
+    export let levelContext;
 
-    let gmOverrideMode = isEditable;
+    let gmOverrideMode = false;
 
     $: activeEditingEnabled = isEditable && gmOverrideMode;
     $: treeData = item?.system?.tree || { nodes: [], backgroundImage: "" };
@@ -79,6 +80,7 @@
                     posX: Math.round(event.clientX - rect.left),
                     posY: Math.round(event.clientY - rect.top),
                     requirements: [],
+                    requiredLevel: sourceItem.system.level.value,
                 };
                 await item.update({ "system.tree.nodes": [...nodes, newNode] });
                 selectedNodeUuid = dragData.uuid;
@@ -122,7 +124,7 @@
         }
 
         try {
-            const success = await purchaseAspectNode(actorContext, item, targetCanvasNode);
+            const success = await purchaseAspectNode(actorContext, item, targetCanvasNode, levelContext);
             if (success) {
                 selectedNodeUuid = selectedNodeUuid;
                 item = item;

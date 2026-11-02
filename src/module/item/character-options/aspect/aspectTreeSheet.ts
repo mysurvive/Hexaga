@@ -1,9 +1,11 @@
 import { SvelteComponent } from "svelte";
 import AspectTreeShell from "./components/AspectTreeShell.svelte";
+import { DeepPartial } from "fvtt-types/utils";
 
 export class AspectTreeSheet extends foundry.applications.sheets.ItemSheetV2 {
     private svelteComponent: SvelteComponent | null = null;
     private hookId: number | null = null;
+    private levelContext: number = 1;
 
     static override DEFAULT_OPTIONS = {
         classes: ["hexaga", "sheet", "aspect-tree"],
@@ -16,7 +18,11 @@ export class AspectTreeSheet extends foundry.applications.sheets.ItemSheetV2 {
         return document.createElement("div");
     }
 
-    protected override _replaceHTML(_result: HTMLElement, content: HTMLElement, _options: object): void {
+    protected override _replaceHTML(
+        _result: HTMLElement,
+        content: HTMLElement,
+        _options: foundry.applications.api.ApplicationV2.RenderOptionsOf<this> & { levelContext: number },
+    ): void {
         if (this.svelteComponent) {
             this.svelteComponent.$set({
                 item: this.document,
@@ -31,8 +37,20 @@ export class AspectTreeSheet extends foundry.applications.sheets.ItemSheetV2 {
             props: {
                 isEditable: game.user.isGM,
                 item: this.document,
+                levelContext: this.levelContext,
             },
         });
+    }
+
+    override async _prepareContext(
+        options: DeepPartial<foundry.applications.api.ApplicationV2.RenderOptions> & {
+            isFirstRender: boolean;
+            levelContext?: number;
+        },
+    ): Promise<foundry.applications.api.ApplicationV2.RenderContextOf<this>> {
+        const context = await super._prepareContext(options);
+        this.levelContext = options.levelContext ?? 1;
+        return context;
     }
 
     protected override async _onRender(context: any, options: any): Promise<void> {

@@ -2,7 +2,10 @@
     import { evaluateAspectProgression } from "../../../../item/character-options/aspect/helpers.ts";
 
     export let actor;
+    export let sheetData;
 
+    $: levels = Array.from({ length: actor.system.level ?? 1 }, (_, index) => index + 1);
+    $: levelContext = sheetData.currentLevelContext;
     $: updateTrigger = actor?.apps ? Object.keys(actor.apps).length : 0;
     $: items = actor?.items ? Array.from(actor.items) : [];
     $: aspectTrees = items.filter((i) => i.type === "aspect");
@@ -23,7 +26,7 @@
 
     function handleOpenAspectSheet(treeItem) {
         if (!treeItem) return;
-        treeItem.sheet.render(true);
+        treeItem.sheet.render(true, { levelContext: levelContext });
     }
 
     function handleOpenNodeSheet(nodeItem) {
@@ -40,7 +43,7 @@
             return;
         }
 
-        const confirmDelete = awaitfoundry.applications.api.DialogV2.confirm({
+        const confirmDelete = await foundry.applications.api.DialogV2.confirm({
             title: `Abandon Aspect: ${treeItem.name}`,
             content: `<p>Are you sure you want to abandon the <strong>${treeItem.name}</strong> aspect?</p>
                      <p class="warning">This will completely remove the aspect and refund any spent aspect nodes.</p>`,
@@ -67,11 +70,33 @@
 </script>
 
 <div class="aspect-progression-summary-bar">
-    <div class="summary-metric-pill emphasis-points" class:insufficient-points={wallet.nodes.available === 0}>
-        <span class="metric-label">Aspect Points Available:</span>
-        <span class="metric-value"
-            >{wallet.nodes.available} <span class="metric-max-label">/ {wallet.nodes.allowed}</span></span
+    <div class="wallet-metrics">
+        <div
+            class="summary-metric-pill emphasis-points"
+            class:insufficient-points={wallet.nodes[`level${levelContext}`]?.available === 0 ?? true}
         >
+            <span class="metric-label">Aspect Points Available For Level {levelContext}:</span>
+            <span class="metric-value"
+                >{wallet.nodes[`level${levelContext}`]?.available ?? "ERR"}
+                <span class="metric-max-label">/ {wallet.nodes[`level${levelContext}`]?.allowed ?? "ERR"}</span></span
+            >
+        </div>
+        <div class="summary-metric-pill emphasis-points" class:insufficient-points={wallet.nodes.available === 0}>
+            <span class="metric-label">Total Aspect Points Available:</span>
+            <span class="metric-value"
+                >{wallet.nodes.total.available}
+                <span class="metric-max-label">/ {wallet.nodes.total.allowed}</span></span
+            >
+        </div>
+    </div>
+    <div class="level-context-buttons">
+        Level:
+        {#each levels as level}
+            <label class="level-radio-wrapper">
+                <input type="radio" name="level-context" value={level} bind:group={sheetData.currentLevelContext} />
+                <span>{level}</span>
+            </label>
+        {/each}
     </div>
 </div>
 
@@ -128,20 +153,58 @@
     {:else}
         <div class="empty-tree-state">
             <i class="fas fa-network-wired empty-icon"></i>
-            <p>No active Aspect progression paths are equipped on this character.</p>
-            <p class="subtext">Drop an Aspect item onto this sheet to initialize your layout.</p>
+            <p>No Aspects have been added to this character.</p>
+            <p class="subtext">Drop an Aspect onto this sheet to initialize your layout.</p>
         </div>
     {/each}
 </div>
 
 <style lang="scss">
     .aspect-progression-summary-bar {
-        display: flex;
-        gap: 12px;
-        width: 100%;
-        margin-bottom: 12px;
-        padding-bottom: 8px;
         border-bottom: 1px solid #333533;
+        margin-bottom: 8px;
+
+        .wallet-metrics {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            margin-top: 12px;
+            margin-bottom: 4px;
+            padding-bottom: 8px;
+        }
+
+        .level-context-buttons {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 8px;
+
+            input[type="radio"] {
+                position: absolute;
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            span {
+                display: inline-flex;
+                cursor: pointer;
+                position: relative;
+                border: 1px solid #f49d37;
+                width: 24px;
+                height: 24px;
+                justify-content: center;
+                align-items: center;
+                color: #8c8c8a;
+            }
+
+            input[type="radio"]:checked + span {
+                background-color: #f49d37;
+                color: #242423;
+                font-weight: 600;
+            }
+        }
     }
 
     .summary-metric-pill {

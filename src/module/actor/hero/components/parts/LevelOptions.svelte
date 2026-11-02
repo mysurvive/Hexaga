@@ -7,40 +7,34 @@
 
     const grantedLevelImprovements = CONFIG.hexaga.improvements[level];
     const rankCap = CONFIG.hexaga.maxRank.findLast((item) => item.level <= level).cap;
-    const witBonus = actor.system.attributes.wit.total;
+    const witBonus =
+        actor.system.improvements.attributes[level]?.reduce((total, current) => {
+            return current === "wit" ? total + 1 : total;
+        }, 0) ?? 0;
+
     $: allowedImprovements =
         optionType === "skills" ? grantedLevelImprovements.skills + witBonus : grantedLevelImprovements[optionType];
 
-    $: chosenLevelImprovements = actor.system.improvements?.find((i) => i.source === `level${level}`) ?? {
-        source: `level${level}`,
-        attributes: [],
-        skills: [],
-        expertise: [],
-    };
-    $: allLevelImprovements = actor.system.improvements ?? [];
+    $: allLevelImprovements = actor.system.improvements;
     $: improvementsPicked =
         optionType === "skills"
-            ? chosenLevelImprovements.skills.length + chosenLevelImprovements.expertise.length
-            : chosenLevelImprovements.attributes.length;
+            ? (allLevelImprovements.skills[level]?.length ?? 0) + (allLevelImprovements.expertise[level]?.length ?? 0)
+            : (allLevelImprovements.attributes[level]?.length ?? 0);
     $: remainingPicks = allowedImprovements - improvementsPicked;
 
     function getCount(option, improvements) {
-        return chosenLevelImprovements[optionType].reduce(
-            (total, current) => (current === option ? total + 1 : total),
-            0,
+        return (
+            allLevelImprovements[optionType][level]?.reduce(
+                (total, current) => (current === option ? total + 1 : total),
+                0,
+            ) ?? 0
         );
     }
 
     function getCountAll(option, improvements) {
         let counter = 0;
-        const eligibleImprovements = improvements.filter(
-            (i) => i.source === "heritage" || i.source === "profession" || Number(i.source.split("level")[1]) <= level,
-        );
-        for (const improvement of eligibleImprovements) {
-            counter += (improvement[optionType] ?? []).reduce(
-                (total, current) => (current === option ? total + 1 : total),
-                0,
-            );
+        for (const improvement of Object.entries(allLevelImprovements[optionType])) {
+            counter += (improvement[1] ?? []).reduce((total, current) => (current === option ? total + 1 : total), 0);
         }
         return counter;
     }
@@ -50,49 +44,26 @@
     }
 
     async function increaseChoice(option) {
-        const { targetPick, picks } = getLevelImprovements(option);
-
-        targetPick[optionType].push(option);
+        const improvement = (allLevelImprovements[optionType][level] ??= allLevelImprovements[optionType][level] = []);
+        improvement.push(option);
 
         const updates = {
-            "system.improvements": picks,
+            [`system.improvements.${optionType}.${level}`]: improvement,
         };
 
         await actor.update(updates);
     }
 
     async function decreaseChoice(option) {
-        const { targetPick, picks } = getLevelImprovements(option);
-
-        const stringIndex = targetPick[optionType].indexOf(option);
+        const improvement = allLevelImprovements[optionType][level];
+        const stringIndex = improvement.indexOf(option);
         if (stringIndex > -1) {
-            targetPick[optionType].splice(stringIndex, 1);
+            improvement.splice(stringIndex, 1);
         }
 
-        const updates = { "system.improvements": picks };
+        const updates = { [`system.improvements.${optionType}.${level}`]: improvement };
 
         await actor.update(updates);
-    }
-
-    function getLevelImprovements() {
-        const picks = Array.isArray(actor.system.improvements) ? [...actor.system.improvements] : [];
-        let targetPick = picks.find((p) => p.source === `level${level}`);
-
-        if (!targetPick) {
-            targetPick = { source: `level${level}`, attributes: [], skills: [], expertise: [] };
-            picks.push(targetPick);
-        } else {
-            targetPick = {
-                ...targetPick,
-                attributes: [...targetPick.attributes],
-                skills: [...targetPick.skills],
-                expertise: [...targetPick.expertise],
-            };
-            const targetIndex = picks.findIndex((p) => p.source === `level${level}`);
-            picks[targetIndex] = targetPick;
-        }
-
-        return { targetPick, picks };
     }
 </script>
 
@@ -142,13 +113,11 @@
             <div class="label">Expertise</div>
             <TagifyInput
                 allowed={remainingPicks}
-                selections={chosenLevelImprovements.expertise}
+                selections={allLevelImprovements.expertise[level]}
                 externalBlacklist={actor.expertise.map((s) => (typeof s === "object" ? s.slug : s))}
                 onChange={async (values) => {
-                    const { targetPick, picks } = getLevelImprovements();
-                    targetPick["expertise"] = values;
-                    const update = { "system.improvements": picks };
-                    actor.update(update);
+                    const update = { [`system.improvements.expertise.${level}`]: values };
+                    await actor.update(update);
                 }}
             />
         {/if}

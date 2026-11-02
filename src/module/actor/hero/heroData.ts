@@ -8,6 +8,7 @@ import {
 import { ATTRIBUTE_GROUP_MAPS, ATTRIBUTE_STRINGS, SKILL_STRINGS } from "../foundation.ts";
 import { ActorHexData } from "../base/baseActorData.ts";
 import { ItemHex } from "../../item/base/base.ts";
+import { AspectData } from "../../item/character-options/aspect/aspectData.ts";
 
 export class HeroData extends ActorHexData<HeroSchema> {
     static override defineSchema(): HeroSchema {
@@ -29,7 +30,6 @@ export class HeroData extends ActorHexData<HeroSchema> {
         this.prepareBaselineStats();
         for (const attribute in this.attributes) {
             const a = attribute as keyof typeof this.attributes;
-            this.attributes[a].label = `hexaga.attributes.${attribute}.label`;
 
             const groupPair = Object.keys(ATTRIBUTE_GROUP_MAPS).find((attrKey) => {
                 const groups = Object.keys(
@@ -38,9 +38,12 @@ export class HeroData extends ActorHexData<HeroSchema> {
                 return groups.includes(a);
             });
             if (!groupPair) throw new Error(`No matching group found for ${a}`);
+
+            this.attributes[a].label = `hexaga.attributes.${attribute}.label`;
             this.attributes[a].group = groupPair;
             this.attributes[a].mod = 0;
             this.attributes[a].total = this.attributes[a].rank;
+            this.attributes[a].breakdown = [];
         }
     }
 
@@ -68,7 +71,7 @@ export class HeroData extends ActorHexData<HeroSchema> {
             }
         }
 
-        this.parent.expertise = this.gatherExpertise();
+        this.parent.expertise = this.getExpertise().sort((a, b) => a.value.localeCompare(b.value));
         for (const exp of this.parent.expertise) {
             this.rollOptions.all[`expertise:${exp.slug}`] = true;
         }
@@ -132,41 +135,178 @@ export class HeroData extends ActorHexData<HeroSchema> {
         });
     }
 
-    gatherExpertise(): any[] {
-        const expertise = new Set();
-        for (const item of this.parent.items) {
-            if (item.flags.hexaga?.selections?.expertise) {
-                item.flags.hexaga.selections.expertise.forEach((e: Record<string, string>) => {
-                    expertise.add(e);
-                });
+    _onCreateDescendantDocuments(...args: Actor.OnCreateDescendantDocumentsArgs): void {
+        const [_parent, _collection, documents] = args;
+
+        if (!documents || !documents.length) return;
+
+        const aspectUpdates = documents.filter((d) => d.type === "aspect" || d.type === "aspectNode");
+        if (aspectUpdates.length > 0) {
+            this.prepareAspectProgression();
+        }
+    }
+
+    async _onUpdateDescendantDocuments(...args: Actor.OnUpdateDescendantDocumentsArgs): Promise<void> {
+        const [_parent, collection, documents] = args;
+
+        if (collection !== "items" || !documents || !documents.length) return;
+
+        for (const document of documents) {
+            const selections = document.getFlag("hexaga", "selections") ?? {};
+            const attributes = selections.attributes;
+            const skills = selections.skills;
+            const expertise = selections.expertise;
+            const aspects = Array.isArray(document.system?.improvements?.aspects)
+                ? document.system.improvements.aspects
+                : document.system?.improvements?.aspects
+                  ? [document.system.improvements.aspects]
+                  : [];
+
+            if (document.type === "heritage" || document.type === "profession") {
+                const improvements = foundry.utils.deepClone(this.improvements);
+                improvements.attributes[document.type] = attributes;
+                improvements.skills[document.type] = skills;
+                improvements.expertise[document.type] = expertise;
+                improvements.aspects[document.type] = aspects;
+
+                console.log(selections);
+
+                await this.parent.update({ system: { improvements: improvements } });
             }
         }
-        for (const improvement of this.improvements) {
-            improvement.expertise?.forEach((e) => expertise.add(e));
+    }
+
+    async _onDeleteDescendantDocuments(...args: Actor.OnDeleteDescendantDocumentsArgs): Promise<void> {
+        const [_parent, collection, documents] = args;
+
+        if (collection !== "items" || !documents || !documents.length) return;
+
+        const itemsToDeleteIds: string[] = [];
+        const deletedItems = documents as unknown as Item[];
+
+        // Delete all aspect nodes purchased from an aspect when an aspect is deleted
+        for (const item of deletedItems) {
+            if (item && item.type === "aspect") {
+                const aspectModel = item.system as unknown as AspectData;
+                const aspectSlug = aspectModel.slug;
+                if (!aspectSlug) continue;
+
+                for (const ownedItem of this.parent.items) {
+                    if (ownedItem.type === "aspectNode") {
+                        const nodeAspectSlug = (ownedItem.system as any).aspectSlug;
+
+                        if (nodeAspectSlug === aspectSlug) {
+                            itemsToDeleteIds.push(ownedItem.id!);
+                        }
+                    }
+                }
+            }
+
+            if (item && (item.type === "heritage" || item.type === "profession")) {
+                for (const improvement in this.improvements) {
+                    const i = improvement as keyof typeof this.improvements;
+                    if (item.type in this.improvements[i]) {
+                        await this.updateSource({
+                            [`improvements.${i}`]: { [item.type]: new foundry.data.operators.ForcedDeletion() },
+                        });
+                    }
+                }
+            }
         }
 
-        return Array.from(expertise);
+        if (itemsToDeleteIds.length > 0) {
+            void this.parent.deleteEmbeddedDocuments("Item", itemsToDeleteIds);
+        }
+
+        const aspectUpdates = documents.filter((d) => d.type === "aspect" || d.type === "aspectNode");
+        if (aspectUpdates.length > 0) {
+            this.prepareAspectProgression();
+        }
+    }
+
+    override async _preUpdate(changes: object, options: Actor.Database.PreUpdateOptions, user: User.Stored) {
+        const allowed = await super._preUpdate(changes, options, user);
+        if (allowed === false) return false;
+
+        if (
+            foundry.utils.hasProperty(changes, "itemTypes.aspect") ||
+            foundry.utils.hasProperty(changes, "itemTypes.aspectNode")
+        ) {
+            const aspectChanges = this.prepareAspectProgression();
+            foundry.utils.mergeObject(changes, { "system.improvements.aspects": aspectChanges });
+        }
+
+        return true;
+    }
+
+    getExpertise(): ValueSlugModel[] {
+        const improvementExpertise = Object.values(this.improvements.expertise).flatMap((e) => e);
+        const expertise = [...(this.parent.expertise ?? []), ...improvementExpertise];
+
+        return expertise;
+    }
+
+    prepareAspectProgression() {
+        const aspects = [...this.parent.itemTypes.aspect, ...this.parent.itemTypes.aspectNode].reduce(
+            (acc, a) => {
+                const level = (a.system.level.taken ?? a.flags.hexaga?.grantedBy ?? "bonus").toString();
+                if (!acc[level]) {
+                    acc[level] = [];
+                }
+                acc[level].push(a.uuid);
+                return acc;
+            },
+            {} as Record<string, string[]>,
+        );
+
+        this.parent.update({ system: { improvements: { aspects: aspects } } });
     }
 
     prepareBaselineStats(): void {
         const attributes = this.attributes;
         const skills = this.skills;
-        for (const improvement of this.improvements) {
-            for (const attr in attributes) {
-                if (improvement.attributes)
-                    attributes[attr as keyof typeof attributes].rank += (improvement.attributes ?? []).reduce(
-                        (total, current) => (current === attr ? total + 1 : total),
-                        0,
-                    );
-            }
-            for (const skl in skills) {
-                if (improvement.skills)
-                    skills[skl as keyof typeof skills].rank += (improvement.skills ?? []).reduce(
-                        (total, current) => (current === skl ? total + 1 : total),
-                        0,
-                    );
-            }
+
+        const levelMap = Array.from({ length: this.level }, (_, index) => {
+            return index + 1;
+        });
+
+        const attributeImprovements = Object.entries(this.improvements.attributes)
+            .flatMap((key) => {
+                {
+                    if (levelMap.includes(Number(key[0])) || key[0] === "heritage" || key[0] === "profession") {
+                        return key[1];
+                    }
+                    return undefined;
+                }
+            })
+            .filter((a) => a !== undefined);
+
+        for (const attr in attributes) {
+            const a = attr as keyof typeof attributes;
+            attributes[a].rank = attributeImprovements.reduce((total, current) => {
+                return current === a ? total + 1 : total;
+            }, 0);
         }
+
+        const skillImprovements = Object.entries(this.improvements.skills)
+            .flatMap((key) => {
+                {
+                    if (levelMap.includes(Number(key[0])) || key[0] === "heritage" || key[0] === "profession") {
+                        return key[1];
+                    }
+                    return undefined;
+                }
+            })
+            .filter((a) => a !== undefined);
+
+        for (const skl in skills) {
+            const s = skl as keyof typeof skills;
+            skills[s].rank = skillImprovements.reduce((total, current) => {
+                return current === s ? total + 1 : total;
+            }, 0);
+        }
+
+        console.log(this.attributes);
     }
 
     prepareNumericRollOptions() {
@@ -195,35 +335,32 @@ const defineHeroSchema = () => {
             heritage: new fields.EmbeddedDataField(ItemHex, { nullable: true, persisted: false }),
             profession: new fields.EmbeddedDataField(ItemHex, { nullable: true, persisted: false }),
         }),
-        improvements: new fields.ArrayField(
-            new fields.SchemaField({
-                source: new fields.StringField({ required: true, nullable: false }),
-                attributes: new fields.ArrayField(new fields.StringField(), {
-                    initial: [],
-                    required: false,
-                    nullable: true,
-                }),
-                skills: new fields.ArrayField(new fields.StringField(), {
-                    initial: [],
-                    required: false,
-                    nullable: true,
-                }),
-                expertise: new fields.ArrayField(
-                    new fields.SchemaField({ value: new fields.StringField(), slug: new fields.StringField() }),
-                    {
-                        required: false,
-                        nullable: true,
-                        initial: [],
-                    },
-                ),
-                aspects: new fields.ArrayField(new fields.DocumentUUIDField(), {
-                    required: false,
-                    nullable: true,
-                    initial: [],
-                }),
-            }),
-        ),
+        improvements: new fields.SchemaField({
+            attributes: new fields.TypedObjectField(
+                new fields.ArrayField(new fields.StringField({ choices: [...ATTRIBUTE_STRINGS] })),
+            ),
+            skills: new fields.TypedObjectField(
+                new fields.ArrayField(new fields.StringField({ choices: [...SKILL_STRINGS] })),
+            ),
+            expertise: new fields.TypedObjectField(new fields.ArrayField(new fields.EmbeddedDataField(ValueSlugModel))),
+            aspects: new fields.TypedObjectField(new fields.ArrayField(new fields.StringField())),
+        }),
     };
 };
+
+export class ValueSlugModel extends foundry.abstract.DataModel<ValueSlugModelSchema> {
+    static override defineSchema() {
+        return defineValueSlugModel();
+    }
+}
+
+const defineValueSlugModel = () => {
+    return {
+        value: new fields.StringField({ required: true, nullable: false }),
+        slug: new fields.StringField({ required: true, nullable: false }),
+    };
+};
+
+type ValueSlugModelSchema = ReturnType<typeof defineValueSlugModel>;
 
 type HeroSchema = ReturnType<typeof defineHeroSchema>;

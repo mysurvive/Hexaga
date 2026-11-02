@@ -3,7 +3,7 @@
     const dispatch = createEventDispatcher();
 
     export let isEditable = false;
-    export let gmOverrideMode = true;
+    export let gmOverrideMode = false;
 </script>
 
 {#if isEditable}

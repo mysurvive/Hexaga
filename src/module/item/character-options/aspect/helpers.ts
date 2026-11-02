@@ -1,5 +1,6 @@
 import { ActorHex } from "../../../actor/base/baseActor.ts";
 
+// move this onto the class
 export interface CanvasNodeConnector {
     nodeUUID: string;
     posX: number;
@@ -16,8 +17,7 @@ export interface ProgressionWallet {
 }
 
 export function evaluateAspectProgression(actor: ActorHex) {
-    const characterLevel: number = actor.system?.level ?? 1;
-    const registeredSelections = actor.system.improvements.map((i) => i.aspects) || [];
+    const characterLevel: number = actor.system.level ?? 1;
     const totalOwnedAspects = actor.items.filter((i) => i.type === "aspect") || [];
     const grantedAspectsCount = totalOwnedAspects.filter((i) => i.getFlag("hexaga", "grantedBy") !== undefined).length;
     const manuallyChosenAspectsCount = totalOwnedAspects.filter((i) => !i.getFlag("hexaga", "grantedBy")).length;
@@ -27,6 +27,11 @@ export function evaluateAspectProgression(actor: ActorHex) {
     const ownedNodes = actor.items?.filter((i) => i.type === "aspectNode") || [];
     const totalSpentNodePoints = ownedNodes.length;
     const availableNodePoints = Math.max(0, totalAllowedNodePoints - totalSpentNodePoints);
+    const progressionByLevelArray = Array.from({ length: characterLevel + 1 }, (_, index) => {
+        if (index === 0) return null;
+        return getAspectLevelProgressionContext(actor, index);
+    }).filter((i) => i !== null && i !== undefined);
+    const progressionByLevel = Object.fromEntries([...progressionByLevelArray]);
     return {
         trees: {
             granted: grantedAspectsCount,
@@ -34,11 +39,25 @@ export function evaluateAspectProgression(actor: ActorHex) {
             allowedVariant: allowedVariantTreeSlots,
             availableSlots: availableVariantTreeSlots,
         },
-        nodes: { allowed: totalAllowedNodePoints, spent: totalSpentNodePoints, available: availableNodePoints },
+        nodes: {
+            total: { allowed: totalAllowedNodePoints, spent: totalSpentNodePoints, available: availableNodePoints },
+            ...progressionByLevel,
+        },
     };
 }
 
-export async function purchaseAspectNode(actor: any, aspectTree: any, canvasNode: any): Promise<boolean> {
+export function getAspectLevelProgressionContext(actor: ActorHex, level: number) {
+    const improvements = actor.system.improvements;
+    const levelData = improvements.aspects[level] ?? undefined;
+    return levelData;
+}
+
+export async function purchaseAspectNode(
+    actor: any,
+    aspectTree: any,
+    canvasNode: any,
+    level: number,
+): Promise<boolean> {
     if (!actor || !aspectTree || !canvasNode?.nodeUUID) return false;
 
     const aspectSlug: string = aspectTree.system?.slug;
@@ -65,20 +84,10 @@ export async function purchaseAspectNode(actor: any, aspectTree: any, canvasNode
 
     const templateItem = fromUuidSync(targetTemplateUuid) as any;
 
-    const resolvedName =
-        templateItem?.name ||
-        game.items?.get(targetTemplateUuid)?.name ||
-        `Aspect Node (${targetTemplateUuid.split(".").pop()})`;
-
-    const itemDataPayload = {
-        name: resolvedName,
-        type: "aspectNode",
-        img: templateItem?.img || "icons/svg/item-bag.svg",
-        system: {
-            templateUuid: targetTemplateUuid,
-            aspectSlug: aspectSlug,
-        },
-    };
+    const itemDataPayload = templateItem.toObject();
+    itemDataPayload.system.aspectSlug = aspectSlug;
+    itemDataPayload.system.templateUuid = targetTemplateUuid;
+    itemDataPayload.system.level.taken = level;
 
     try {
         await actor.createEmbeddedDocuments("Item", [itemDataPayload]);

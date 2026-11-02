@@ -4,25 +4,20 @@
     export let actor;
 
     const rankCap = CONFIG.hexaga.maxRank.findLast((item) => item.level === 1).cap;
+    const optionType = option.type;
 
-    $: improvements = option?.system?.improvements?.[tKey] ?? null;
+    $: itemImprovementOptions = option?.system?.improvements?.[tKey] ?? null;
     $: selectedChoices = Array.isArray(option?.flags?.hexaga?.selections?.[tKey])
         ? option.flags.hexaga.selections[tKey]
         : [];
-    $: allowed = improvements?.allowed ?? 1;
+    $: allowed = itemImprovementOptions?.allowed ?? 1;
     $: isAtItemCap = selectedChoices.length >= allowed;
-    $: allLevelImprovements = actor.system.improvements ?? [];
+    $: allLevelImprovements = actor.system.improvements;
 
-    function getCountAll(option, imp) {
+    function getCountAll(optionGroup, option, improvements) {
         let counter = 0;
-        const eligibleImprovements = imp.filter(
-            (i) => i.source === "heritage" || i.source === "profession" || Number(i.source.split("level")[1]) <= 1,
-        );
-        for (const improvement of eligibleImprovements) {
-            counter += (improvement[tKey] ?? []).reduce(
-                (total, current) => (current === option ? total + 1 : total),
-                0,
-            );
+        for (const improvement of Object.entries(allLevelImprovements[optionGroup])) {
+            counter += (improvement[1] ?? []).reduce((total, current) => (current === option ? total + 1 : total), 0);
         }
         return counter;
     }
@@ -32,7 +27,7 @@
         let newSelections = [...selectedChoices];
 
         if (isChecked) {
-            if (!newSelections.includes(choice) && !(selectedChoices.length >= improvements?.allowed)) {
+            if (!newSelections.includes(choice) && !(selectedChoices.length >= itemImprovementOptions?.allowed)) {
                 newSelections.push(choice);
             }
         } else {
@@ -54,15 +49,16 @@
     {#each option.system?.improvements?.[tKey]?.selected ?? [] as optionImprovement, index}
         <label
             class="labeled-toggle"
-            class:disabled-toggle={(getCountAll(optionImprovement, allLevelImprovements) >= rankCap || isAtItemCap) &&
+            class:disabled-toggle={(getCountAll(tKey, optionImprovement, allLevelImprovements) >= rankCap ||
+                isAtItemCap) &&
                 !selectedChoices.includes(optionImprovement)}
         >
             <input
                 type="checkbox"
                 name="{tKey}-options"
-                bind:value={improvements}
+                bind:value={itemImprovementOptions}
                 checked={selectedChoices.includes(optionImprovement)}
-                disabled={(getCountAll(optionImprovement, allLevelImprovements) >= rankCap || isAtItemCap) &&
+                disabled={(getCountAll(tKey, optionImprovement, allLevelImprovements) >= rankCap || isAtItemCap) &&
                     !selectedChoices.includes(optionImprovement)}
                 on:change={(e) => makeChoice(option.uuid, optionImprovement, e)}
             />

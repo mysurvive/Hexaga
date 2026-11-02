@@ -8,7 +8,7 @@
 
     // Heritage and Profession bonuses are granted at level 1 only
     const rankCap = CONFIG.hexaga.maxRank.findLast((item) => item.level === 1).cap;
-    $: improvements = option?.system?.improvements ?? null;
+    $: itemImprovementOptions = option?.system?.improvements ?? null;
     $: selectedChoices = Array.isArray(option?.flags?.hexaga?.selections) ? option.flags.hexaga.selections : [];
 
     function _loc(key) {
@@ -27,7 +27,7 @@
             <hr />
         </div>
     {/if}
-    {#if option && improvements}
+    {#if option && itemImprovementOptions}
         <details class="improvement-item">
             <summary>
                 <span class="label-box">
@@ -53,17 +53,20 @@
                 {#each titleKey as tKey}
                     {#if tKey === "expertise"}
                         <span class="title-left">{window.game.i18n.localize(`hexaga.${tKey}.label`)}</span>
-                        <span>Choose {improvements[tKey].allowed} expertise options:</span>
+                        <span>Choose {itemImprovementOptions[tKey].allowed} expertise options:</span>
                         <TagifyInput
                             allowed={option.system.improvements.expertise.allowed -
-                                (option.flags?.hexaga?.selections?.expertise?.length ?? 0)}
-                            selections={option.flags?.hexaga?.selections?.expertise || []}
+                                (actor.system.improvements.expertise[optionType]?.length ?? 0)}
+                            selections={actor.system.improvements.expertise[optionType] || []}
                             externalBlacklist={actor.expertise.map((s) => (typeof s === "object" ? s.slug : s))}
-                            onChange={async (values) => await option.setFlag("hexaga", "selections.expertise", values)}
+                            onChange={async (values) => {
+                                const update = { [`system.improvements.expertise.${optionType}`]: values };
+                                await actor.update(update);
+                            }}
                         />
                     {:else}
                         <span class="title-left">{window.game.i18n.localize(`hexaga.${tKey}.label`)}</span>
-                        <span>Select {improvements[tKey].allowed} from the following:</span>
+                        <span>Select {itemImprovementOptions[tKey].allowed} from the following:</span>
 
                         <CheckboxOptions {option} {tKey} {actor} />
                     {/if}

@@ -34,6 +34,9 @@ const defineAspectSchema = () => {
     return {
         ...ItemHexData.defineSchema(),
         hpPerNode: new fields.NumberField({ required: true, nullable: false, initial: 3 }),
+        level: new fields.SchemaField({
+            taken: new fields.NumberField(),
+        }),
         tree: new fields.SchemaField({
             nodes: new fields.ArrayField(new fields.EmbeddedDataField(AspectNodeConnectorData), {
                 required: true,

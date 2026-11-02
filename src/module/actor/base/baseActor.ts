@@ -8,8 +8,8 @@ import {
     ResistanceValueStatistic,
     SkillStatistic,
 } from "../../system/statistic/statistic.ts";
+import { ValueSlugModel } from "../hero/heroData.ts";
 import { ActorSynthetics } from "../synthetics.ts";
-import type { AspectData } from "../../item/character-options/aspect/aspectData.ts";
 
 export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Actor<SubType> {
     declare public synthetics: ActorSynthetics;
@@ -17,7 +17,7 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
     declare rv: Record<string, ResistanceValueStatistic>;
     declare intrinsics: Record<string, any>;
     declare hp: HitpointStatistic;
-    declare expertise: Record<string, string>[];
+    declare expertise: ValueSlugModel[];
     declare maneuvers: AttackStatistic[];
     public wornArmor: ItemHex<"armor"> | undefined = undefined;
     public rules: RuleElement[] = [];
@@ -40,111 +40,34 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
         }
     }
 
-    protected override _onUpdateDescendantDocuments(...args: Actor.OnUpdateDescendantDocumentsArgs): void {
-        super._onUpdateDescendantDocuments(...args);
-        const [_parent, collection, documents] = args;
-        if (collection !== "items") return;
+    protected override _onCreateDescendantDocuments(...args: Actor.OnCreateDescendantDocumentsArgs): void {
+        super._onCreateDescendantDocuments(...args);
 
-        const improvements = foundry.utils.deepClone(this.system.improvements ?? []);
-        let changed = false;
-
-        for (const document of documents) {
-            const selections = document.getFlag("hexaga", "selections") ?? {};
-            const attributes = Array.isArray(selections.attributes) ? selections.attributes : [];
-            const skills = Array.isArray(selections.skills) ? selections.skills : [];
-            const expertise = Array.isArray(selections.expertise) ? selections.expertise : [];
-            const aspects = Array.isArray(document.system?.improvements?.aspects)
-                ? document.system.improvements.aspects
-                : document.system?.improvements?.aspects
-                  ? [document.system.improvements.aspects]
-                  : [];
-            if (document.type === "heritage") {
-                const heritageImprovements = improvements.find((i) => i.source === "heritage");
-                if (heritageImprovements) {
-                    heritageImprovements.attributes = attributes;
-                    heritageImprovements.skills = skills;
-                    heritageImprovements.expertise = expertise;
-                    if (!Array.isArray(heritageImprovements.aspects)) {
-                        heritageImprovements.aspects = [];
-                    }
-                    for (const aspect of aspects) {
-                        if (!heritageImprovements.aspects.includes(aspect)) {
-                            heritageImprovements.aspects.push(aspect);
-                        }
-                    }
-                } else {
-                    improvements.push({ source: document.type, attributes, skills, expertise, aspects: [...aspects] });
-                }
-                changed = true;
-            }
-
-            if (document.type === "profession") {
-                const professionImprovements = improvements.find((i) => i.source === "profession");
-                if (professionImprovements) {
-                    professionImprovements.attributes = attributes;
-                    professionImprovements.skills = skills;
-                    professionImprovements.expertise = expertise;
-                    if (!Array.isArray(professionImprovements.aspects)) {
-                        professionImprovements.aspects = [];
-                    }
-                    for (const aspect of aspects) {
-                        if (!professionImprovements.aspects.includes(aspect)) {
-                            professionImprovements.aspects.push(aspect);
-                        }
-                    }
-                } else {
-                    improvements.push({ source: document.type, attributes, skills, expertise, aspects: [...aspects] });
-                }
-                changed = true;
-            }
-        }
-
-        if (changed) {
-            this.update({ system: { improvements: improvements } });
+        // Delegate to the DataModel
+        if (typeof this.system._onCreateDescendantDocuments === "function") {
+            this.system._onCreateDescendantDocuments(...args);
         }
     }
 
-    protected override _onDeleteDescendantDocuments(
-        parent: any,
-        collection: any,
-        documents: any[],
-        ids: any[],
-        options: any,
-        userId: any,
-    ): void {
-        super._onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId);
+    protected override async _onUpdateDescendantDocuments(
+        ...args: Actor.OnUpdateDescendantDocumentsArgs
+    ): Promise<void> {
+        super._onUpdateDescendantDocuments(...args);
 
-        if (collection !== "items" || !documents || !documents.length) return;
-
-        const itemsToDeleteIds: string[] = [];
-
-        const deletedItems = documents as unknown as Item[];
-
-        for (const item of deletedItems) {
-            if (item && item.type === "aspect") {
-                const aspectModel = item.system as unknown as AspectData;
-                const aspectSlug = aspectModel.slug;
-                if (!aspectSlug) continue;
-
-                for (const ownedItem of this.items) {
-                    if (ownedItem.type === "aspectNode") {
-                        const nodeAspectSlug = (ownedItem.system as any).aspectSlug;
-
-                        if (nodeAspectSlug === aspectSlug) {
-                            itemsToDeleteIds.push(ownedItem.id!);
-                        }
-                    }
-                }
-            }
-
-            if ((item && item.type === "heritage") || item.type === "profession") {
-                const index = this.system.improvements.findIndex((i) => i.source === item.type);
-                this.system.improvements.splice(index, 1);
-            }
+        // Delegate to the DataModel
+        if (typeof this.system._onUpdateDescendantDocuments === "function") {
+            await this.system._onUpdateDescendantDocuments(...args);
         }
+    }
 
-        if (itemsToDeleteIds.length > 0) {
-            void this.deleteEmbeddedDocuments("Item", itemsToDeleteIds);
+    protected override async _onDeleteDescendantDocuments(
+        ...args: Actor.OnDeleteDescendantDocumentsArgs
+    ): Promise<void> {
+        super._onDeleteDescendantDocuments(...args);
+
+        // Delegate to the DataModel
+        if (typeof this.system._onDeleteDescendantDocuments === "function") {
+            this.system._onDeleteDescendantDocuments(...args);
         }
     }
 

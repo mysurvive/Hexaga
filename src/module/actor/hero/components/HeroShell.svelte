@@ -5,8 +5,10 @@
     import TabSpells from "./tabs/TabSpells.svelte";
     import TabAspects from "./tabs/TabAspects.svelte";
     import TabImprovements from "./tabs/TabImprovements.svelte";
+    import { HeroSheet } from "../HeroSheet.ts";
 
     export let actor: any;
+    export let sheetData: HeroSheet;
 
     function _loc(key: string): string {
         return game.i18n.localize(key);
@@ -89,9 +91,15 @@
                 </div>
             </div>
             <div class="focus-box-container medium" id="character-level">
-                <div class="focus-label">Level</div>
+                <label for="level-input" class="focus-label">Level</label>
                 <div class="focus-content">
-                    {actor.system.level}
+                    <input
+                        class="character-level"
+                        type="number"
+                        id="level-input"
+                        value={actor.system.level}
+                        on:change={(e) => updateActorFromInput("system.level", e)}
+                    />
                 </div>
             </div>
         </header>
@@ -102,7 +110,10 @@
                     class="sheet-tab-button"
                     id={tab.id}
                     class:active={activeTab === tab.id}
-                    on:click={() => (activeTab = tab.id)}
+                    on:click={() => {
+                        activeTab = tab.id;
+                        sheetData.activeTab = activeTab;
+                    }}
                 >
                     <label for={tab.id}>{_loc(`hexaga.actor.hero.sheet.tabs.${tab.id}`)}</label>
                 </a>
@@ -118,7 +129,7 @@
         {:else if activeTab === "spells"}
             <TabSpells {actor} />
         {:else if activeTab === "aspects"}
-            <TabAspects {actor} />
+            <TabAspects {actor} {sheetData} />
         {:else if activeTab === "improvements"}
             <TabImprovements {actor} />
         {/if}
@@ -184,6 +195,13 @@
 
         #character-level {
             justify-self: center;
+
+            .character-level {
+                background: none;
+                justify-self: center;
+                width: 40px;
+                justify-items: center;
+            }
         }
     }
 </style>

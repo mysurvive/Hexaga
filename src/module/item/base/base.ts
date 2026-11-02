@@ -32,11 +32,19 @@ export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<S
         if (grantRules.length > 0) {
             for (const rule of grantRules) {
                 const uuid = rule.data.config.uuid;
+
                 if (!uuid || typeof uuid !== "string") continue;
+
                 const grantedItem = await fromUuid(uuid);
+
                 if (!grantedItem || !(grantedItem instanceof ItemHex)) continue;
+
                 const grantedItemObj = grantedItem.toObject();
-                foundry.utils.setProperty(grantedItemObj, "flags.hexaga.grantedBy", this.uuid);
+
+                const grantedByString = this.type === "heritage" || this.type === "profession" ? this.type : this.uuid;
+
+                foundry.utils.setProperty(grantedItemObj, "flags.hexaga.grantedBy", grantedByString);
+
                 this.actor.createEmbeddedDocuments("Item", [grantedItemObj]);
             }
         }
@@ -47,7 +55,11 @@ export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<S
 
         if (!this.actor || game.user.id !== userId) return;
         const grantedItems = this.actor.items
-            .filter((i) => i.getFlag("hexaga", "grantedBy") === this.uuid)
+            .filter(
+                (i) =>
+                    i.getFlag("hexaga", "grantedBy") ===
+                    (this.type === "heritage" || this.type === "profession" ? this.type : this.uuid),
+            )
             .map((i) => i._id);
         if (grantedItems.length > 0) await this.actor.deleteEmbeddedDocuments("Item", grantedItems);
     }

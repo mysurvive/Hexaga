@@ -12,7 +12,7 @@
     <div class="scroll-container">
         <BackgroundOptions {actor} option={heritage} optionType="heritage" titleKey={["attributes"]} />
         <BackgroundOptions {actor} option={profession} optionType="profession" titleKey={["skills", "expertise"]} />
-        {#each Array(actor.system.level) as _, index}
+        {#each Array.from({ length: actor.system.level }) as _, index}
             <LevelOptionsShell {actor} level={index + 1} />
         {/each}
     </div>
