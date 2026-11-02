@@ -206,8 +206,8 @@ export class HeroData extends ActorHexData<HeroSchema> {
                 for (const improvement in this.improvements) {
                     const i = improvement as keyof typeof this.improvements;
                     if (item.type in this.improvements[i]) {
-                        await this.updateSource({
-                            [`improvements.${i}`]: { [item.type]: new foundry.data.operators.ForcedDeletion() },
+                        await this.parent.update({
+                            [`system.improvements.${i}`]: { [item.type]: new foundry.data.operators.ForcedDeletion() },
                         });
                     }
                 }

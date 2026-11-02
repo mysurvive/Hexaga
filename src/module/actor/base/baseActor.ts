@@ -67,7 +67,7 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
 
         // Delegate to the DataModel
         if (typeof this.system._onDeleteDescendantDocuments === "function") {
-            this.system._onDeleteDescendantDocuments(...args);
+            await this.system._onDeleteDescendantDocuments(...args);
         }
     }
 
