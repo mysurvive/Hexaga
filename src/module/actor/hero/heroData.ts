@@ -80,6 +80,8 @@ export class HeroData extends ActorHexData<HeroSchema> {
             this.parent.maneuvers.push(new AttackStatistic(this.parent, { slug: `${weapon.slug}`, weapon: weapon }));
         }
 
+        this.prepareAspectProgression();
+
         this.prepareNumericRollOptions();
 
         for (const rule of this.parent.rules) {
@@ -213,8 +215,10 @@ export class HeroData extends ActorHexData<HeroSchema> {
         }
 
         if (itemsToDeleteIds.length > 0) {
-            void this.parent.deleteEmbeddedDocuments("Item", itemsToDeleteIds);
+            await void this.parent.deleteEmbeddedDocuments("Item", itemsToDeleteIds);
         }
+
+        console.log(this.parent.items);
 
         const aspectUpdates = documents.filter((d) => d.type === "aspect" || d.type === "aspectNode");
         if (aspectUpdates.length > 0) {
@@ -247,7 +251,7 @@ export class HeroData extends ActorHexData<HeroSchema> {
     prepareAspectProgression() {
         const aspects = [...this.parent.itemTypes.aspect, ...this.parent.itemTypes.aspectNode].reduce(
             (acc, a) => {
-                const level = (a.system.level.taken ?? a.flags.hexaga?.grantedBy ?? "bonus").toString();
+                const level = (a.flags.hexaga?.grantedBy ?? a.system.level.taken ?? "bonus").toString();
                 if (!acc[level]) {
                     acc[level] = [];
                 }
@@ -257,7 +261,7 @@ export class HeroData extends ActorHexData<HeroSchema> {
             {} as Record<string, string[]>,
         );
 
-        this.parent.update({ system: { improvements: { aspects: aspects } } });
+        this.improvements.aspects = aspects;
     }
 
     prepareBaselineStats(): void {
@@ -269,10 +273,10 @@ export class HeroData extends ActorHexData<HeroSchema> {
         });
 
         const attributeImprovements = Object.entries(this.improvements.attributes)
-            .flatMap((key) => {
+            .flatMap(([key, value]) => {
                 {
-                    if (levelMap.includes(Number(key[0])) || key[0] === "heritage" || key[0] === "profession") {
-                        return key[1];
+                    if (levelMap.includes(Number(key)) || key === "heritage" || key === "profession") {
+                        return value;
                     }
                     return undefined;
                 }
@@ -287,10 +291,10 @@ export class HeroData extends ActorHexData<HeroSchema> {
         }
 
         const skillImprovements = Object.entries(this.improvements.skills)
-            .flatMap((key) => {
+            .flatMap(([key, value]) => {
                 {
-                    if (levelMap.includes(Number(key[0])) || key[0] === "heritage" || key[0] === "profession") {
-                        return key[1];
+                    if (levelMap.includes(Number(key)) || key === "heritage" || key === "profession") {
+                        return value;
                     }
                     return undefined;
                 }
@@ -339,7 +343,7 @@ const defineHeroSchema = () => {
                 new fields.ArrayField(new fields.StringField({ choices: [...SKILL_STRINGS] })),
             ),
             expertise: new fields.TypedObjectField(new fields.ArrayField(new fields.EmbeddedDataField(ValueSlugModel))),
-            aspects: new fields.TypedObjectField(new fields.ArrayField(new fields.StringField())),
+            aspects: new fields.TypedObjectField(new fields.ArrayField(new fields.StringField()), { persisted: false }),
         }),
     };
 };

@@ -18,6 +18,8 @@
         const input = event.currentTarget as HTMLInputElement;
         const value = input.value;
 
+        console.log("function updating actor");
+
         try {
             await actor.update({ [path]: value });
         } catch (error) {

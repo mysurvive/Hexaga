@@ -55,7 +55,15 @@ export class HeroSheet extends foundry.applications.sheets.ActorSheetV2 {
             }
             const itemData = item.toObject();
 
-            foundry.utils.setProperty(itemData, "system.level.taken", this.currentLevelContext);
+            if (
+                this.currentLevelContext === 1 &&
+                (!this.document.system.improvements.aspects.creation ||
+                    this.document.system.improvements.aspects.creation?.length === 0)
+            ) {
+                foundry.utils.setProperty(itemData, "flags.hexaga.grantedBy", "creation");
+            } else {
+                foundry.utils.setProperty(itemData, "system.level.taken", this.currentLevelContext);
+            }
 
             const returnItem = await Item.create(itemData, { parent: this.actor, render: true });
 

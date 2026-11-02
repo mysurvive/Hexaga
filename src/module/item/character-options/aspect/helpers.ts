@@ -12,11 +12,29 @@ export interface CanvasNodeConnector {
 }
 
 export interface ProgressionWallet {
-    trees: { allocated: number; used: number; available: number };
-    nodes: { allocated: number; used: number; available: number };
+    trees: {
+        granted: number;
+        chosen: number;
+        allowedVariant: number;
+        availableSlots: number;
+    };
+    nodes: {
+        total: {
+            allowed: number;
+            spent: number;
+            available: number;
+        };
+        [level: string]:
+            | {
+                  chosen: string[];
+                  allowed: number;
+                  available: number;
+              }
+            | { allowed: number; spent: number; available: number };
+    };
 }
 
-export function evaluateAspectProgression(actor: ActorHex) {
+export function evaluateAspectProgression(actor: ActorHex, levelContext: number): ProgressionWallet {
     const characterLevel: number = actor.system.level ?? 1;
     const totalOwnedAspects = actor.items.filter((i) => i.type === "aspect") || [];
     const grantedAspectsCount = totalOwnedAspects.filter((i) => i.getFlag("hexaga", "grantedBy") !== undefined).length;
@@ -27,11 +45,7 @@ export function evaluateAspectProgression(actor: ActorHex) {
     const ownedNodes = actor.items?.filter((i) => i.type === "aspectNode") || [];
     const totalSpentNodePoints = ownedNodes.length;
     const availableNodePoints = Math.max(0, totalAllowedNodePoints - totalSpentNodePoints);
-    const progressionByLevelArray = Array.from({ length: characterLevel + 1 }, (_, index) => {
-        if (index === 0) return null;
-        return getAspectLevelProgressionContext(actor, index);
-    }).filter((i) => i !== null && i !== undefined);
-    const progressionByLevel = Object.fromEntries([...progressionByLevelArray]);
+    const progressionByLevel = getAspectLevelProgressionContext(actor, levelContext);
     return {
         trees: {
             granted: grantedAspectsCount,
@@ -49,7 +63,11 @@ export function evaluateAspectProgression(actor: ActorHex) {
 export function getAspectLevelProgressionContext(actor: ActorHex, level: number) {
     const improvements = actor.system.improvements;
     const levelData = improvements.aspects[level] ?? undefined;
-    return levelData;
+    const levelAllowed = CONFIG.hexaga.improvements[level]?.aspects ?? 0;
+    const levelNumTaken = levelData?.length ?? 0;
+    const levelAvailable = levelAllowed - levelNumTaken;
+
+    return { [level]: { chosen: levelData, allowed: levelAllowed, available: levelAvailable } };
 }
 
 export async function purchaseAspectNode(
@@ -64,8 +82,8 @@ export async function purchaseAspectNode(
     const targetTemplateUuid: string = canvasNode.nodeUUID;
     if (!aspectSlug || !targetTemplateUuid) return false;
 
-    const wallet = evaluateAspectProgression(actor);
-    if (wallet.nodes.available <= 0) {
+    const wallet = evaluateAspectProgression(actor, level);
+    if (wallet.nodes.total.available <= 0 || wallet.nodes[level.toString()].available <= 0) {
         ui.notifications?.error("Insufficient progression points to purchase this node.");
         return false;
     }

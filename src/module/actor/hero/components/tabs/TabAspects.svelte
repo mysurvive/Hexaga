@@ -12,7 +12,7 @@
     $: ownedNodes = items.filter((i) => i.type === "aspectNode");
     $: wallet = (() => {
         const _dummy = updateTrigger;
-        return evaluateAspectProgression(actor, items);
+        return evaluateAspectProgression(actor, levelContext);
     })();
     $: getPurchasedNodes = (treeItem) => {
         const aspectSlug = treeItem?.system?.slug;
@@ -38,7 +38,7 @@
         if (!treeItem) return;
 
         const originSource = treeItem.getFlag("hexaga", "grantedBy");
-        if (originSource) {
+        if (originSource === "profession" || originSource === "heritage") {
             ui.notifications?.warn(`Cannot delete this Aspect tree: It is currently granted by your ${originSource}.`);
             return;
         }
@@ -77,8 +77,8 @@
         >
             <span class="metric-label">Aspect Points Available For Level {levelContext}:</span>
             <span class="metric-value"
-                >{wallet.nodes[`level${levelContext}`]?.available ?? "ERR"}
-                <span class="metric-max-label">/ {wallet.nodes[`level${levelContext}`]?.allowed ?? "ERR"}</span></span
+                >{wallet.nodes[levelContext]?.available ?? "ERR"}
+                <span class="metric-max-label">/ {wallet.nodes[levelContext]?.allowed ?? "ERR"}</span></span
             >
         </div>
         <div class="summary-metric-pill emphasis-points" class:insufficient-points={wallet.nodes.available === 0}>
@@ -119,7 +119,7 @@
                     <i class="fas fa-external-link-alt launch-indicator"></i>
                 </button>
 
-                {#if !tree.getFlag("hexaga", "grantedBy")}
+                {#if tree.getFlag("hexaga", "grantedBy") !== "heritage" && tree.getFlag("hexaga", "grantedBy") !== "profession"}
                     <button
                         type="button"
                         class="aspect-dismiss-action-btn"
