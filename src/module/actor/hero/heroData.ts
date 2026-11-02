@@ -169,8 +169,6 @@ export class HeroData extends ActorHexData<HeroSchema> {
                 improvements.expertise[document.type] = expertise;
                 improvements.aspects[document.type] = aspects;
 
-                console.log(selections);
-
                 await this.parent.update({ system: { improvements: improvements } });
             }
         }
@@ -305,8 +303,6 @@ export class HeroData extends ActorHexData<HeroSchema> {
                 return current === s ? total + 1 : total;
             }, 0);
         }
-
-        console.log(this.attributes);
     }
 
     prepareNumericRollOptions() {
