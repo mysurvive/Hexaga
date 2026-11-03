@@ -1,11 +1,14 @@
 import { SvelteComponent } from "svelte";
 import HeroShell from "./components/HeroShell.svelte";
+import { ItemHex } from "../../item/base/base.ts";
+import { DeepPartial } from "fvtt-types/utils";
 
 export class HeroSheet extends foundry.applications.sheets.ActorSheetV2 {
     private svelteComponent: SvelteComponent | null = null;
+    public allAspectItems: Record<string, (ItemHex<"aspect"> | ItemHex<"aspectNode">)[]> = {};
 
     public activeTab: string = "character";
-    public currentLevelContext: number = 1;
+    public currentLevelContext: number = this.document.system.level;
 
     static override DEFAULT_OPTIONS = {
         classes: ["hexaga", "sheet", "actor"],
@@ -13,6 +16,22 @@ export class HeroSheet extends foundry.applications.sheets.ActorSheetV2 {
         window: { resizable: true },
         position: { width: 1100, height: 900 },
     };
+
+    override async _prepareContext(
+        options: DeepPartial<foundry.applications.sheets.ActorSheetV2.RenderOptions> & { isFirstRender: boolean },
+    ): Promise<foundry.applications.api.ApplicationV2.RenderContextOf<this>> {
+        const context = super._prepareContext(options);
+
+        this.allAspectItems = Object.fromEntries(
+            Object.entries(this.document.system.improvements.aspects)
+                .map(([key, value]) => {
+                    return [key, value.map((v) => fromUuidSync(v)).filter((v) => v !== undefined && v !== null)];
+                })
+                .filter((e) => e !== undefined && e !== null),
+        );
+
+        return context;
+    }
 
     protected override async _renderHTML(_context: object, _options: object): Promise<HTMLElement> {
         return document.createElement("div");

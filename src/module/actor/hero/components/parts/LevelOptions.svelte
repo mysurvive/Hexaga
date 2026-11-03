@@ -7,8 +7,22 @@
 
     const grantedLevelImprovements = CONFIG.hexaga.improvements[level];
     const rankCap = CONFIG.hexaga.maxRank.findLast((item) => item.level <= level).cap;
-    const witBonus =
-        actor.system.improvements.attributes[level]?.reduce((total, current) => {
+
+    $: witSources = Object.entries(actor.system.improvements.attributes)
+        .map(([key, value]) => {
+            if (key === "profession" || key === "heritage") {
+                return value;
+            }
+            if (!isNaN(Number(key)) && Number(key) <= level) {
+                return value;
+            }
+            return undefined;
+        })
+        .filter((e) => e !== undefined)
+        .flat();
+
+    $: witBonus =
+        witSources.reduce((total, current) => {
             return current === "wit" ? total + 1 : total;
         }, 0) ?? 0;
 
@@ -69,9 +83,8 @@
 
 <details class="improvement-item">
     <summary>
-        <span>{window.game.i18n.localize(`hexaga.${optionType}.label`)}</span>{#if remainingPicks > 0}<span
-                >Improvement Available!</span
-            >{/if}
+        <span>{window.game.i18n.localize(`hexaga.${optionType}.label`)}</span>{#if remainingPicks > 0}
+            <span class="pulse-indicator">Improvement Available!</span>{/if}
     </summary>
     <div class="content">
         <span>
@@ -125,6 +138,12 @@
 </details>
 
 <style lang="scss">
+    $color-platinum: #cfdbd5;
+    $color-alabaster: #e8eddf;
+    $color-orange-peel: #f49d37;
+    $color-eerie-black: #242423;
+    $color-jet: #333533;
+
     .label {
         margin-top: 20px;
         font-weight: bold;
@@ -190,5 +209,12 @@
         height: 20px;
         align-content: center;
         justify-content: space-between;
+    }
+
+    .pulse-indicator {
+        color: $color-orange-peel;
+        font-size: 0.9rem;
+        margin-left: 8px;
+        font-weight: normal;
     }
 </style>

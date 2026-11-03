@@ -319,11 +319,6 @@ export class HeroData extends ActorHexData<HeroSchema> {
             const rank = this.parent.skills[skill].total;
             this.rollOptions.all[`${skill}:rank:${rank}`] = true;
         }
-
-        // for (const aspect of this.parent.itemTypes.aspect ?? []) {
-        //     const count = aspect.system.pointsSpent;
-        //     this.rollOptions.all[`aspect:${aspect.system.slug}:count:${count}`] = true;
-        // }
     }
 }
 

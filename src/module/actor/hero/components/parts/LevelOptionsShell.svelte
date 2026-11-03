@@ -1,5 +1,6 @@
 <script>
     import LevelOptions from "./LevelOptions.svelte";
+    import AspectLevelOptions from "./AspectLevelOptions.svelte";
     export let actor;
     export let level;
 </script>
@@ -14,6 +15,9 @@
     {/if}
     {#if window.CONFIG.hexaga.improvements[level].skills !== 0}
         <LevelOptions {actor} {level} optionType="skills" />
+    {/if}
+    {#if window.CONFIG.hexaga.improvements[level].aspects !== 0}
+        <AspectLevelOptions {actor} {level} />
     {/if}
 </section>
 

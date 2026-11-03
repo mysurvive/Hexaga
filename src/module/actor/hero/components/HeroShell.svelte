@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { writable } from "svelte/store";
     import TabCharacter from "./tabs/TabCharacter.svelte";
     import TabManeuvers from "./tabs/TabManeuvers.svelte";
     import TabItems from "./tabs/TabItems.svelte";
@@ -6,9 +7,17 @@
     import TabAspects from "./tabs/TabAspects.svelte";
     import TabImprovements from "./tabs/TabImprovements.svelte";
     import { HeroSheet } from "../HeroSheet.ts";
+    import { setContext } from "svelte";
+    import { ActorHex } from "../../base/baseActor.ts";
 
-    export let actor: any;
+    export let actor: ActorHex;
     export let sheetData: HeroSheet;
+
+    const aspectStore = writable(sheetData.allAspectItems);
+    $: aspectStore.set({ ...sheetData.allAspectItems });
+    setContext("aspectStore", aspectStore);
+
+    $: console.log(aspectStore);
 
     function _loc(key: string): string {
         return game.i18n.localize(key);
@@ -17,8 +26,6 @@
     async function updateActorFromInput(path: string, event: Event): Promise<void> {
         const input = event.currentTarget as HTMLInputElement;
         const value = input.value;
-
-        console.log("function updating actor");
 
         try {
             await actor.update({ [path]: value });

@@ -12,10 +12,11 @@
     function initializeTagify(node, currentAllowed) {
         const initialValue = selections ? selections.map((s) => (typeof s === "object" ? s.value : s)).join(", ") : "";
         node.value = initialValue;
+
         const activeSelections = selections ? [...selections] : undefined;
+        const activeSelectionStrings = activeSelections?.map((s) => (typeof s === "object" ? s.slug : s)) ?? [];
 
         const baseBlacklist = externalBlacklist || [];
-        const activeSelectionStrings = activeSelections?.map((s) => (typeof s === "object" ? s.slug : s));
         const filteredBlacklist = baseBlacklist.filter((i) => !activeSelectionStrings.includes(i));
 
         tagifyInstance = new Tagify(node, {
