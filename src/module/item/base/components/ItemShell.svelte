@@ -85,11 +85,28 @@
 </div>
 
 <style lang="scss">
+    :global(.window-content),
+    :global(form),
+    :global(.application) {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    :global(*) {
+        box-sizing: border-box;
+    }
+
     header {
         display: flex;
         flex-direction: row;
         width: 100%;
         align-items: center;
+        flex: 0 0 auto;
+        margin-bottom: 10px;
+
         span {
             flex-grow: 1;
         }
@@ -97,18 +114,14 @@
             height: 60px;
             margin: 5px 10px;
         }
-        margin-bottom: 10px;
     }
-    .details {
-        min-width: 130px;
-        border: 1px solid #2d2f2d;
-        margin-right: 10px;
-        margin-bottom: 15px;
-    }
+
     .content-area {
         display: flex;
         flex-direction: row;
-        height: 100%;
+        flex: 1;
+        min-height: 0;
+
         .details-label {
             justify-self: center;
             margin: 5px;
@@ -117,7 +130,19 @@
             margin: 10px;
         }
     }
+
+    .details {
+        min-width: 130px;
+        border: 1px solid #2d2f2d;
+        margin-right: 10px;
+        margin-bottom: 15px;
+        flex: 0 0 auto;
+    }
+
     .content-focus {
         flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
     }
 </style>
