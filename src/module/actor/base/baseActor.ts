@@ -2,12 +2,8 @@ import { ItemHex } from "../../item/base/base.ts";
 import { ApplyDamageContext } from "../../system/dice/roller.ts";
 import { RuleElement } from "../../system/ruleElement/base.ts";
 import { RulesEngine } from "../../system/ruleElement/rulesEngine.ts";
-import {
-    AttackStatistic,
-    HitpointStatistic,
-    ResistanceValueStatistic,
-    SkillStatistic,
-} from "../../system/statistic/statistic.ts";
+import { AttackStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
+import { HitpointStatistic } from "../../system/statistic/hitpointStatistic.ts";
 import { ValueSlugModel } from "../hero/heroData.ts";
 import { ActorSynthetics } from "../synthetics.ts";
 

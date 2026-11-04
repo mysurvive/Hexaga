@@ -17,8 +17,6 @@
     $: aspectStore.set({ ...sheetData.allAspectItems });
     setContext("aspectStore", aspectStore);
 
-    $: console.log(aspectStore);
-
     function _loc(key: string): string {
         return game.i18n.localize(key);
     }
@@ -74,7 +72,7 @@
                     <span id="character-profession">{actor.system.options?.profession?.name ?? ""}</span>
                 </div>
                 <div class="character-intrinsic">
-                    <div>
+                    <div data-tooltip={actor.hp.breakdown}>
                         <label for="current-hp">HP: </label>
                         <input
                             type="text"

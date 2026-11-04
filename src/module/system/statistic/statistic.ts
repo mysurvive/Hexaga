@@ -2,13 +2,13 @@ import { TestContext } from "../test.ts";
 import { ActorHex } from "../../actor/base/baseActor.ts";
 import { Attributes } from "../../actor/types.ts";
 import { ItemHex } from "../../item/base/base.ts";
-import { Modifier } from "../modifier.ts";
+import { Modifier } from "../modifier/modifier.ts";
 import { Test } from "../test.ts";
 import { DamageRoll, DamageRollContext, RollArgs } from "../dice/roller.ts";
 import { RollDialog } from "../rollDialog/rollDialog.ts";
 
 // The base statistic class
-abstract class BaseStatistic<TActor extends ActorHex> {
+export abstract class BaseStatistic<TActor extends ActorHex> {
     declare protected actor: TActor;
     declare label?: string | null;
     declare domains: string[];
@@ -183,29 +183,6 @@ export class ResistanceValueStatistic extends BaseStatistic<ActorHex> {
     }
 
     get total() {
-        return this.base + this.getModifierValue();
-    }
-}
-
-export class HitpointStatistic extends BaseStatistic<ActorHex> {
-    constructor(actor: ActorHex, data: { slug: string; label?: string }) {
-        super(actor, data);
-
-        this.domains = Array.from(new Set(["all", "max-hp", data.slug]));
-
-        // Make sure HP is within bounds
-        this.actor.system.updateSource({ intrinsic: { hp: { current: Math.clamp(this.current, 0, this.max) } } });
-    }
-
-    get base() {
-        return 10 + this.actor.system.attributes.physique.total * this.actor.system.level;
-    }
-
-    get current() {
-        return this.actor.system.intrinsic.hp.current;
-    }
-
-    get max() {
         return this.base + this.getModifierValue();
     }
 }

@@ -1,7 +1,7 @@
 import { ActorHex } from "../../actor/base/baseActor.ts";
 import { ItemHex } from "../../item/base/base.ts";
 import { SkillStatistic } from "../statistic/statistic.ts";
-import { Modifier } from "../modifier.ts";
+import { Modifier } from "../modifier/modifier.ts";
 
 export interface RollArgs {
     flavor?: string;

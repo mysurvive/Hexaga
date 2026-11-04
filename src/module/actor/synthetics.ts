@@ -1,4 +1,4 @@
-import { Modifier } from "../system/modifier.ts";
+import { Modifier } from "../system/modifier/modifier.ts";
 
 export interface ActorSynthetics {
     modifiers: Record<string, DeferredModifier[]>;

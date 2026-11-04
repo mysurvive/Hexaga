@@ -3,6 +3,50 @@ import { RuleElement } from "../../system/ruleElement/base.ts";
 export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<SubType> {
     declare runtimeRules: RuleElement[];
 
+    get slug() {
+        return this.system.slug;
+    }
+
+    get sourceId() {
+        const isCompendiumItem = this._id && this.pack && !this.isEmbedded;
+        return isCompendiumItem ? this.uuid : (this._stats.duplicateSource ?? this._stats.compendiumSource);
+    }
+
+    // Temporary Typing
+    static override async createDocuments(
+        this: new (...args: any[]) => Document,
+        data: any[] = [],
+        context: any = {},
+    ): Promise<any[]> {
+        if (context.parent?.documentName === "Actor") {
+            for (const createData of data) {
+                const sidebarItem = game.items.get(createData._id ?? "");
+
+                if (sidebarItem && !createData._stats?.duplicateSource) {
+                    createData._stats = {
+                        ...createData._stats,
+                        duplicateSource: sidebarItem.uuid,
+                    };
+                }
+            }
+        }
+        return super.createDocuments(data, context);
+    }
+
+    static override async fromDropData(data: object): Promise<Item.Implementation | undefined> {
+        if ("uuid" in data && typeof data.uuid === "string") {
+            const item = await fromUuid(data.uuid);
+            if (item instanceof ItemHex && item.parent && !item.sourceId) {
+                item._source._stats.duplicateSource = item.uuid;
+                item._stats.duplicateSource = item._source._stats.duplicateSource;
+                item._source._stats.compendiumSource ??= item.uuid?.startsWith("Compendium.") ? item.uuid : null;
+                item._stats.compendiumSource = item._source._stats.compendiumSource;
+            }
+        }
+
+        return super.fromDropData(data);
+    }
+
     protected override async _preCreate(
         data: Item.CreateData,
         options: Item.Database.PreCreateOptions,
@@ -62,10 +106,6 @@ export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<S
             )
             .map((i) => i._id);
         if (grantedItems.length > 0) await this.actor.deleteEmbeddedDocuments("Item", grantedItems);
-    }
-
-    get slug() {
-        return this.system.slug;
     }
 
     override prepareDerivedData(): void {

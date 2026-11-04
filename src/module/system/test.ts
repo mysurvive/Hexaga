@@ -1,7 +1,7 @@
 import { ActorHex } from "../actor/base/baseActor.ts";
 import { ItemHex } from "../item/base/base.ts";
 import { RollArgs, TestRoll, TestRollContext } from "./dice/roller.ts";
-import { Modifier } from "./modifier.ts";
+import { Modifier } from "./modifier/modifier.ts";
 import { RollDialog } from "./rollDialog/rollDialog.ts";
 import { SkillStatistic } from "./statistic/statistic.ts";
 

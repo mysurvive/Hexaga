@@ -1,4 +1,4 @@
-import { Modifier } from "../modifier.ts";
+import { Modifier } from "../modifier/modifier.ts";
 import { RuleElement } from "./base.ts";
 
 export class FlatModifier extends RuleElement<FlatModifierConfig> {

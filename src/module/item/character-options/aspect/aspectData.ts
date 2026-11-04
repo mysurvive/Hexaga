@@ -20,11 +20,13 @@ export class AspectData extends ItemHexData<AspectSchema> {
         rollOptions[`aspect:${slug}`] = true;
 
         for (const canvasNode of canvasNodes) {
-            const ownedNodeInstance = actor.items.find((i) => i.uuid === canvasNode.nodeUUID);
+            const ownedNodeInstance = actor.items.find((i) => {
+                return i.sourceId === canvasNode.nodeUUID;
+            });
 
             if (ownedNodeInstance) {
                 const nodeSlug = ownedNodeInstance.system.slug || ownedNodeInstance.name.slugify();
-                rollOptions[`node:${aspectSlug}:${nodeSlug}`] = true;
+                rollOptions[`aspect:${aspectSlug}:node:${nodeSlug}`] = true;
             }
         }
     }

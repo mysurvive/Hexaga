@@ -1,14 +1,12 @@
 import { HEXAGACONFIG } from "../../../config/index.ts";
-import {
-    AttackStatistic,
-    HitpointStatistic,
-    ResistanceValueStatistic,
-    SkillStatistic,
-} from "../../system/statistic/statistic.ts";
+import { AttackStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
+import { HitpointStatistic } from "../../system/statistic/hitpointStatistic.ts";
 import { ATTRIBUTE_GROUP_MAPS, ATTRIBUTE_STRINGS, SKILL_STRINGS } from "../foundation.ts";
 import { ActorHexData } from "../base/baseActorData.ts";
 import { ItemHex } from "../../item/base/base.ts";
 import { AspectData } from "../../item/character-options/aspect/aspectData.ts";
+import { Modifier } from "../../system/modifier/modifier.ts";
+import { createAttributeModifier } from "../../system/modifier/helpers.ts";
 
 export class HeroData extends ActorHexData<HeroSchema> {
     static override defineSchema(): HeroSchema {
@@ -130,10 +128,56 @@ export class HeroData extends ActorHexData<HeroSchema> {
             slug: "personality-rv",
         });
 
+        // Calculate Hitpoints
+        const aspects = this.parent.itemTypes.aspect;
+        const aspectNodes = this.parent.itemTypes.aspectNode;
+
+        const hitpointModifiers: Modifier[] = [
+            new Modifier({
+                slug: "hp-base",
+                label: "Base HP",
+                modifier: 10,
+                modifies: "flat",
+            }),
+        ];
+
+        const physiqueHP = this.attributes.physique.total * Math.max(this.level, 1);
+        hitpointModifiers.push(
+            new Modifier({
+                slug: "hp-physique",
+                label: "Physique HP",
+                modifier: physiqueHP,
+                modifies: "flat",
+            }),
+        );
+
+        for (const aspect of aspects) {
+            const childNodes = new Set(aspect.system.tree.nodes.map((n) => n.nodeUUID));
+            const hpPerNode = aspect.system.hpPerNode;
+
+            const totalAspectHP =
+                aspectNodes
+                    .filter((n) => {
+                        if (!n.sourceId) return undefined;
+                        return childNodes.has(n.sourceId);
+                    })
+                    .filter((n) => n !== undefined).length * hpPerNode;
+
+            hitpointModifiers.push(
+                new Modifier({
+                    slug: `hp-${aspect.slug}`,
+                    label: `${aspect.name} HP`,
+                    modifier: totalAspectHP,
+                    modifies: "flat",
+                }),
+            );
+        }
+
         // HP
         this.parent.hp = new HitpointStatistic(this.parent, {
             label: "hexaga.hitpoints.label",
             slug: "hp",
+            modifiers: hitpointModifiers,
         });
     }
 
@@ -217,8 +261,6 @@ export class HeroData extends ActorHexData<HeroSchema> {
         if (itemsToDeleteIds.length > 0) {
             await void this.parent.deleteEmbeddedDocuments("Item", itemsToDeleteIds);
         }
-
-        console.log(this.parent.items);
 
         const aspectUpdates = documents.filter((d) => d.type === "aspect" || d.type === "aspectNode");
         if (aspectUpdates.length > 0) {
