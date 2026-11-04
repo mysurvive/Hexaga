@@ -6,7 +6,6 @@ import { ActorHexData } from "../base/baseActorData.ts";
 import { ItemHex } from "../../item/base/base.ts";
 import { AspectData } from "../../item/character-options/aspect/aspectData.ts";
 import { Modifier } from "../../system/modifier/modifier.ts";
-import { createAttributeModifier } from "../../system/modifier/helpers.ts";
 
 export class HeroData extends ActorHexData<HeroSchema> {
     static override defineSchema(): HeroSchema {

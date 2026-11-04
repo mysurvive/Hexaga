@@ -63,6 +63,8 @@
 </details>
 
 <style lang="scss">
+    @use "sass:color";
+
     $color-platinum: #cfdbd5;
     $color-alabaster: #e8eddf;
     $color-orange-peel: #f49d37;
@@ -148,7 +150,11 @@
 
         &:hover {
             .node-hex-frame {
-                background: linear-gradient(135deg, $color-orange-peel, darken($color-orange-peel, 15%));
+                background: linear-gradient(
+                    135deg,
+                    $color-orange-peel,
+                    color.adjust($color-orange-peel, $lightness: -15%)
+                );
                 filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 8px rgba(244, 157, 55, 0.5));
 
                 .medallion-inner-hex-rim {

@@ -358,6 +358,8 @@
 </aside>
 
 <style lang="scss">
+    @use "sass:color";
+
     $color-platinum: #cfdbd5;
     $color-alabaster: #e8eddf;
     $color-orange: #f49d37;
@@ -579,7 +581,7 @@
             background 0.15s,
             opacity 0.15s;
         &:hover:not(:disabled) {
-            background: lighten($color-orange, 8%);
+            background: color.adjust($color-orange, $lightness: 8%);
         }
         &:disabled {
             background: #444;

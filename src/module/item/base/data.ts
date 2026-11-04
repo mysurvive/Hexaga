@@ -1,5 +1,4 @@
 import { RuleElementData } from "../../system/ruleElement/data.ts";
-import { Override } from "fvtt-types/utils";
 
 export class ItemHexData<TSchema extends ItemHexSchema> extends foundry.abstract.TypeDataModel<TSchema, Item> {
     static override defineSchema(): ItemHexSchema {
