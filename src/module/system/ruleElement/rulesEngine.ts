@@ -8,7 +8,7 @@ export class RulesEngine {
 
         for (const ruleData of rulesData) {
             if (!(ruleData.key in CONFIG.hexaga.ruleElements)) continue;
-            const Constructor = CONFIG.hexaga.ruleElements[ruleData.key];
+            const Constructor = CONFIG.hexaga.ruleElements[ruleData.key as keyof typeof CONFIG.hexaga.ruleElements];
             if (!Constructor) {
                 console.warn(`Invalid Rule Element type ${ruleData.key} on ${item.name}`);
                 continue;
