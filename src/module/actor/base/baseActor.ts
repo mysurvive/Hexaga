@@ -1,11 +1,11 @@
 import { ItemHex } from "../../item/base/base.ts";
 import { ApplyDamageContext } from "../../system/dice/roller.ts";
-import { RuleElement } from "../../system/ruleElement/base.ts";
 import { RulesEngine } from "../../system/ruleElement/rulesEngine.ts";
 import { AttackStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
 import { HitpointStatistic } from "../../system/statistic/hitpointStatistic.ts";
 import { ValueSlugModel } from "../hero/heroData.ts";
 import { ActorSynthetics } from "../synthetics.ts";
+import { AnyRuleElement } from "../../system/ruleElement/types.ts";
 
 export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Actor<SubType> {
     declare public synthetics: ActorSynthetics;
@@ -16,7 +16,7 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
     declare expertise: ValueSlugModel[];
     declare maneuvers: AttackStatistic[];
     public wornArmor: ItemHex<"armor"> | undefined = undefined;
-    public rules: RuleElement[] = [];
+    public rules: AnyRuleElement[] = [];
 
     protected override async _preCreate(
         data: Actor.CreateData,

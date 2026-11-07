@@ -1,7 +1,8 @@
-import { RuleElement } from "../../system/ruleElement/base.ts";
+import { RulesEngine } from "../../system/ruleElement/rulesEngine.ts";
+import { AnyRuleElement } from "../../system/ruleElement/types.ts";
 
 export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<SubType> {
-    declare runtimeRules: RuleElement[];
+    declare runtimeRules: AnyRuleElement[];
 
     get slug() {
         return this.system.slug;
@@ -72,10 +73,11 @@ export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<S
     ): Promise<void> {
         await super._onCreate(data, options, userId);
         if (!this.actor || game.user.id !== userId) return;
-        const grantRules = this.runtimeRules.filter((r) => r.data.key === "GrantItem");
+        const grantRules = this.runtimeRules.filter((r) => r.key === "GrantItem");
         if (grantRules.length > 0) {
             for (const rule of grantRules) {
-                const uuid = rule.data.config.uuid;
+                console.log(rule);
+                const uuid = rule.uuid;
 
                 if (!uuid || typeof uuid !== "string") continue;
 
@@ -110,11 +112,6 @@ export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<S
 
     override prepareDerivedData(): void {
         super.prepareDerivedData();
-        this.runtimeRules = [];
-        const savedRules = this.system.rules ?? [];
-        for (const rule of savedRules) {
-            if (!rule.key) continue;
-            this.runtimeRules.push(new CONFIG.hexaga.ruleElements[rule.key](this, rule));
-        }
+        this.runtimeRules = RulesEngine.initialize(this);
     }
 }

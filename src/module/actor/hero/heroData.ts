@@ -82,7 +82,8 @@ export class HeroData extends ActorHexData<HeroSchema> {
         this.prepareNumericRollOptions();
 
         for (const rule of this.parent.rules) {
-            rule.onPrepareDerivedData();
+            if ("onPrepareDerivedData" in rule && typeof rule.onPrepareDerivedData === "function")
+                rule.onPrepareDerivedData();
         }
 
         const allDomainModifiers = this.parent.synthetics.modifiers["all"] ?? [];

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
     export let item;
 
     $: rules = item.system.rules ?? [];
@@ -10,15 +10,18 @@
 
     async function addRuleElement() {
         const placeholder = {
-            domains: ["all"],
             label: `${item.type}: ${item.name}`,
             key: ruleType,
             slug: item.name.slugify(),
         };
 
         try {
-            const constructedPlaceholder = new window.CONFIG.hexaga.ruleElements[ruleType](item, placeholder);
-            const updatedRules = [...rules, constructedPlaceholder.data];
+            const updatedRules = [...rules];
+            updatedRules.push(
+                new window.CONFIG.hexaga.ruleElements[ruleType](placeholder, {
+                    parent: item,
+                }),
+            );
             await item.update({ "system.rules": updatedRules });
         } catch (error) {
             console.error("Error creating rule", error);
@@ -51,7 +54,7 @@
         }
     }
 
-    async function updateSlug(event: Event) {
+    async function updateSlug(event) {
         const target = event.currentTarget;
 
         try {

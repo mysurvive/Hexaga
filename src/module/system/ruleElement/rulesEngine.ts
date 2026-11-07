@@ -1,12 +1,13 @@
 import { ItemHex } from "../../item/base/base.ts";
-import { RuleElement } from "./base.ts";
+import { AnyRuleElement } from "./types.ts";
 
 export class RulesEngine {
-    static initialize(item: ItemHex): RuleElement[] {
-        const rules: RuleElement[] = [];
+    static initialize(item: ItemHex): AnyRuleElement[] {
+        const rules: AnyRuleElement[] = [];
         const rulesData = item.system.rules || [];
 
         for (const ruleData of rulesData) {
+            if (!(ruleData.key in CONFIG.hexaga.ruleElements)) continue;
             const Constructor = CONFIG.hexaga.ruleElements[ruleData.key];
             if (!Constructor) {
                 console.warn(`Invalid Rule Element type ${ruleData.key} on ${item.name}`);
@@ -14,7 +15,7 @@ export class RulesEngine {
             }
 
             try {
-                const ruleInstance = new Constructor(item, ruleData);
+                const ruleInstance = new Constructor(ruleData, { parent: item });
                 rules.push(ruleInstance);
             } catch (error) {
                 console.error(`Unable to create rule element ${ruleData.key} on ${item.name}`, error);

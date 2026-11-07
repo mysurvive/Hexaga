@@ -41,7 +41,7 @@
                 >
                 </prose-mirror>
             {:else}
-                {#await window.foundry.applications.ux.TextEditor.enrichHTML( item.system?.description ?? "", { async: true }, ) then enrichedHtml}
+                {#await window.foundry.applications.ux.TextEditor.enrichHTML(item.system?.description ?? "") then enrichedHtml}
                     <div class="enriched-text-flow">
                         {@html enrichedHtml}
                     </div>

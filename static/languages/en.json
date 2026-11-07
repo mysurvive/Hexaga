@@ -65,7 +65,8 @@
         },
         "ruleElements": {
             "FlatModifier": { "label": "Flat Modifier" },
-            "GrantItem": { "label": "Grant Item" }
+            "GrantItem": { "label": "Grant Item" },
+            "Choice": { "label": "Choice" }
         },
         "skills": {
             "label": "Skills",
