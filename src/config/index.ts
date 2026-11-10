@@ -1,5 +1,6 @@
 import { ATTACK_SKILLS, DAMAGE_ICONS, DAMAGE_TYPES } from "../module/item/equipment/weapon/weaponConfig.ts";
 import { ITEM_TYPES } from "../module/item/itemConfig.ts";
+import { Choice } from "../module/system/ruleElement/choice.ts";
 import { FlatModifier } from "../module/system/ruleElement/flatModifier.ts";
 import { GrantItem } from "../module/system/ruleElement/grantItem.ts";
 import { RuleElementConstructor, RuleElementSchemaMap } from "../module/system/ruleElement/types.ts";
@@ -53,6 +54,7 @@ const MAX_RANK_BY_LEVEL = [
 const RULE_ELEMENTS: { [K in keyof RuleElementSchemaMap]: RuleElementConstructor<K> } = {
     FlatModifier: FlatModifier,
     GrantItem: GrantItem,
+    Choice: Choice,
 };
 
 export const HEXAGACONFIG = {

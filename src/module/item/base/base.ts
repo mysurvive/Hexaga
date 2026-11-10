@@ -2,7 +2,7 @@ import { RulesEngine } from "../../system/ruleElement/rulesEngine.ts";
 import { AnyRuleElement } from "../../system/ruleElement/types.ts";
 
 export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<SubType> {
-    declare runtimeRules: AnyRuleElement[];
+    declare rules: AnyRuleElement[];
 
     get slug() {
         return this.system.slug;
@@ -73,27 +73,26 @@ export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<S
     ): Promise<void> {
         await super._onCreate(data, options, userId);
         if (!this.actor || game.user.id !== userId) return;
-        const grantRules = this.runtimeRules.filter((r) => r.key === "GrantItem");
-        if (grantRules.length > 0) {
-            for (const rule of grantRules) {
-                console.log(rule);
-                const uuid = rule.uuid;
-
-                if (!uuid || typeof uuid !== "string") continue;
-
-                const grantedItem = await fromUuid(uuid);
-
-                if (!grantedItem || !(grantedItem instanceof ItemHex)) continue;
-
-                const grantedItemObj = grantedItem.toObject();
-
-                const grantedByString = this.type === "heritage" || this.type === "profession" ? this.type : this.uuid;
-
-                foundry.utils.setProperty(grantedItemObj, "flags.hexaga.grantedBy", grantedByString);
-
-                this.actor.createEmbeddedDocuments("Item", [grantedItemObj]);
+        for (const rule of this.rules) {
+            if ("onCreate" in rule && typeof rule.onCreate === "function") {
+                await rule.onCreate();
             }
         }
+    }
+
+    protected override async _preDelete(
+        options: Item.Database.PreDeleteOptions,
+        user: User.Stored,
+    ): Promise<boolean | void> {
+        if (!this.actor || game.user.id !== user.id) return;
+
+        for (const rule of this.rules) {
+            if ("preDelete" in rule && typeof rule.preDelete === "function") {
+                await rule.preDelete();
+            }
+        }
+
+        await super._preDelete(options, user);
     }
 
     protected override async _onDelete(options: Item.Database.OnDeleteOptions, userId: string): Promise<void> {
@@ -112,6 +111,11 @@ export class ItemHex<SubType extends Item.SubType = Item.SubType> extends Item<S
 
     override prepareDerivedData(): void {
         super.prepareDerivedData();
-        this.runtimeRules = RulesEngine.initialize(this);
+        this.rules = RulesEngine.initialize(this);
+        for (const rule of this.rules) {
+            if ("onPrepareDerivedData" in rule && typeof rule.onPrepareDerivedData === "function") {
+                rule.onPrepareDerivedData();
+            }
+        }
     }
 }

@@ -85,20 +85,6 @@
 </div>
 
 <style lang="scss">
-    :global(.window-content),
-    :global(form),
-    :global(.application) {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
-        box-sizing: border-box;
-    }
-
-    :global(*) {
-        box-sizing: border-box;
-    }
-
     header {
         display: flex;
         flex-direction: row;

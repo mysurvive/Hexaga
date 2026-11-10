@@ -1,5 +1,6 @@
 import { ItemHex } from "../../item/base/base.ts";
 import { RuleElement } from "./base.ts";
+import { Choice, ChoiceSchema } from "./choice.ts";
 import { FlatModifier } from "./flatModifier.ts";
 import { FlatModifierSchema } from "./flatModifier.ts";
 import { GrantItem } from "./grantItem.ts";
@@ -8,10 +9,12 @@ import { GrantItemSchema } from "./grantItem.ts";
 export type RuleElementSchemaMap = {
     FlatModifier: FlatModifierSchema & { readonly key: "FlatModifier" };
     GrantItem: GrantItemSchema & { readonly key: "GrantItem" };
+    Choice: ChoiceSchema & { readonly key: "Choice" };
 };
 export type RuleElementMap = {
     FlatModifier: FlatModifier;
     GrantItem: GrantItem;
+    Choice: Choice;
 };
 
 export type RuleElementConstructor<K extends keyof RuleElementSchemaMap> = new (

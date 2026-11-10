@@ -6,8 +6,6 @@ export class FlatModifier extends RuleElement<FlatModifierSchema> {
         if (this.phase !== "derived") return;
         if (!this.actor) return;
 
-        console.log("hit");
-
         for (const target of this.targets) {
             if (!target) continue;
 

@@ -15,7 +15,7 @@ export class RulesEngine {
             }
 
             try {
-                const ruleInstance = new Constructor(ruleData, { parent: item });
+                const ruleInstance = new Constructor(ruleData as never, { parent: item });
                 rules.push(ruleInstance);
             } catch (error) {
                 console.error(`Unable to create rule element ${ruleData.key} on ${item.name}`, error);
