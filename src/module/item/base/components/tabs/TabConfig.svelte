@@ -83,13 +83,14 @@
                         ><i class="fa-solid fa-trash-can"></i></button
                     >
                 </span>
-                <textarea
+                <code-mirror
                     class="full-width"
                     name="rules"
+                    language="json"
                     data-dtype="JSON"
-                    value={JSON.stringify(rule)}
+                    value={JSON.stringify(rule, null, 4)}
                     on:change={(e) => editRuleElement(index, e)}
-                ></textarea>
+                ></code-mirror>
             </div>
         {/each}
     </div>
