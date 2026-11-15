@@ -13,6 +13,6 @@ export function createAttributeModifier({ actor, attribute, domains }: Attribute
         label: game.i18n.localize(`hexaga.attributes.${attribute}.label`),
         modifier: actor.system.attributes[attribute as keyof typeof actor.system.attributes].total,
         domains: domains,
-        modifies: "flat",
+        modifies: "dice",
     });
 }

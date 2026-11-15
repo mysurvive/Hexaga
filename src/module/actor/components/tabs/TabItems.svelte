@@ -1,7 +1,7 @@
 <script>
     import EquipmentContainer from "../parts/EquipmentContainer.svelte";
-    import { ItemHex } from "../../../../item/base/base.ts";
-    import { ActorHex } from "../../../base/baseActor.ts";
+    import { ItemHex } from "../../../item/base/base.ts";
+    import { ActorHex } from "../../base/baseActor.ts";
 
     export let actor;
 

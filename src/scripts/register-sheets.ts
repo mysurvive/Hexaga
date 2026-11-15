@@ -1,4 +1,5 @@
 import { HeroSheet } from "../module/actor/hero/HeroSheet.ts";
+import { NPCSheet } from "../module/actor/npc/npcSheet.ts";
 import { ItemSheetHex } from "../module/item/base/sheet.ts";
 import { AspectTreeSheet } from "../module/item/character-options/aspect/aspectTreeSheet.ts";
 import { BASIC_ITEMS } from "../module/item/itemConfig.ts";
@@ -20,6 +21,12 @@ export function registerSheets(): void {
     dsc.registerSheet(Actor, "hexaga", HeroSheet, {
         label: "Hero",
         types: ["hero"],
+        makeDefault: true,
+    });
+
+    dsc.registerSheet(Actor, "hexaga", NPCSheet, {
+        label: "NPC",
+        types: ["npc"],
         makeDefault: true,
     });
 }

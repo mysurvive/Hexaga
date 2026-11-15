@@ -62,6 +62,7 @@ export function evaluateAspectProgression(actor: ActorHex, levelContext: number)
 
 export function getAspectLevelProgressionContext(actor: ActorHex, level: number) {
     const improvements = actor.system.improvements;
+    if (!improvements) return;
     const levelData = improvements.aspects[level] ?? undefined;
     const levelAllowed = CONFIG.hexaga.improvements[level]?.aspects ?? 0;
     const levelNumTaken = levelData?.length ?? 0;

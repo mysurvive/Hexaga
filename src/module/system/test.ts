@@ -1,6 +1,6 @@
 import { ActorHex } from "../actor/base/baseActor.ts";
 import { ItemHex } from "../item/base/base.ts";
-import { RollArgs, TestRoll, TestRollContext } from "./dice/roller.ts";
+import { RollArgs, SkillTestRoll, TestRollContext, TestRoll, TempoRoll } from "./dice/roller.ts";
 import { Modifier } from "./modifier/modifier.ts";
 import { RollDialog } from "./rollDialog/rollDialog.ts";
 import { SkillStatistic } from "./statistic/statistic.ts";
@@ -41,7 +41,12 @@ export class Test {
             );
         }
 
-        const modifiers = this.skill.getModifierList(this.domains, activeRollOptions);
+        const modifiers = this.skill
+            ? this.skill.getModifierList(this.domains, activeRollOptions)
+            : this.type === "tempo"
+              ? this.roller.intrinsics.tempo.getModifierList(this.domains, activeRollOptions)
+              : [];
+
         if (this.mmp < 0) {
             modifiers.push(
                 new Modifier({
@@ -60,37 +65,55 @@ export class Test {
             this.dv = 0;
         }
 
-        return {
+        const testRollContext = {
             roller: this.roller,
             dv: this.dv,
             item: this.item,
             origin: { token: this.roller.token, actor: this.roller },
             target: this.target && this.target.actor ? { token: this.target, actor: this.target.actor } : null,
-            skill: this.skill,
             modifiers: modifiers,
             dealsDamage: this.dealsDamage,
             rollType: this.type,
             against: this.against,
         };
+
+        if (this.skill) {
+            foundry.utils.setProperty(testRollContext, "skill", this.skill);
+        }
+
+        return testRollContext;
     }
 
-    async roll(args: RollArgs = {}) {
-        args.title = args.title
-            ? args.title
-            : this.type === "attack"
-              ? `Attack: ${this.item?.name}`
-              : `Test: ${_loc(this.skill.label as string)}`;
+    async roll(args: RollArgs = {}): Promise<TestRoll<TestRollContext> | undefined> {
+        const label = this.skill ? this.skill.label : this.type === "tempo" ? "Tempo" : undefined;
 
-        const rollContext = this.getRollContext();
+        if (label) {
+            args.title = args.title
+                ? args.title
+                : this.type === "attack"
+                  ? `Attack: ${this.item?.name}`
+                  : `Test: ${_loc(label)}`;
 
-        const finalRollContext = await RollDialog.prompt(rollContext, args);
+            const rollContext = this.getRollContext();
 
-        if (!finalRollContext) return;
+            const finalRollContext = args.skipDialog ? rollContext : await RollDialog.prompt(rollContext, args);
 
-        const roll = await new TestRoll(finalRollContext, args).evaluate();
-        await roll.toMessage();
+            if (!finalRollContext) return;
+
+            const roll = await new ROLL_TYPE[this.type](finalRollContext, args).evaluate();
+            if (args.createMessage !== false) await roll.toMessage();
+            return roll;
+        } else {
+            console.error("Error creating Test instance");
+            return;
+        }
     }
 }
+
+const ROLL_TYPE: Record<string, new (context: TestRollContext, args: RollArgs) => TestRoll> = {
+    test: SkillTestRoll,
+    tempo: TempoRoll,
+};
 
 export interface TestContext {
     roller: ActorHex;
@@ -99,8 +122,8 @@ export interface TestContext {
     target?: TokenDocument;
     domains: string[];
     rollOptions: string[];
-    skill: SkillStatistic;
-    type: "attack" | "test";
+    skill?: SkillStatistic;
+    type: "attack" | "test" | "tempo";
     mmp?: number;
     dealsDamage?: boolean;
     against?: "physical" | "mental" | "personality";

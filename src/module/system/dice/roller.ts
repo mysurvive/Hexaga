@@ -7,153 +7,222 @@ export interface RollArgs {
     flavor?: string;
     traceData?: Array<{ label: string; value?: string | null; type: string }>;
     title?: string;
+    skipDialog?: boolean;
+    createMessage?: boolean;
+    fromCombat?: boolean;
 }
 
 export interface TestRollContext {
     roller: ActorHex;
+    modifiers: Modifier[];
+    rollType: "attack" | "test" | "tempo";
+}
+
+export interface SkillTestContext extends TestRollContext {
     dv: number;
-    item?: ItemHex;
     origin: { token: TokenDocument | null; actor: ActorHex };
     target?: { token: TokenDocument; actor: ActorHex } | null;
     skill: SkillStatistic;
-    modifiers: Modifier[];
     dealsDamage: boolean;
-    rollType: "attack" | "test";
-    against?: "physical" | "mental" | "personality";
+    item?: ItemHex;
+    against: "physical" | "mental" | "personality";
+    rollType: "test";
 }
 
-export class TestRoll {
-    declare dicePool: number;
-    declare options: RollArgs;
-    declare title: string;
-    declare skill: SkillStatistic;
-    declare dv: number;
-    declare roller: ActorHex;
-    declare item: ItemHex | undefined;
-    declare dealsDamage: boolean;
-    declare testType;
-    declare flatSuccesses;
-    declare target;
-    declare against;
+export interface TempoContext extends TestRollContext {
+    rollType: "tempo";
+}
 
-    public results: number[] = [];
-    public rolledNetSuccesses = 0;
-    public successesAfterMods = 0;
-    public successesAfterDV = 0;
-    public pass = false;
-    public successLevel = 0;
-    public isCriticalFailure = false;
-    public diceSuccessCounts = {};
+export abstract class TestRoll<RollContext extends TestRollContext = TestRollContext> {
+    declare roll: Roll;
+    declare diceTiers: Record<string, number>;
+    declare rawSuccesses: number;
+    declare results: number[];
 
-    constructor(context: TestRollContext, options: RollArgs) {
-        this.skill = context.skill;
-        this.dv = context.dv;
+    constructor(
+        public readonly context: RollContext,
+        public readonly options: RollArgs,
+    ) {}
 
-        this.title = options.title ?? "Roll";
-        this.options = options;
-        this.roller = context.roller;
-        this.item = context.item;
-        this.dealsDamage = context.dealsDamage;
-        this.testType = context.rollType;
-        this.target = context.target;
-        this.against = context.against;
-
-        const successModifications = context.modifiers.reduce((total: number, current: Modifier) => {
+    get successModifications() {
+        return this.context.modifiers.reduce((total: number, current: Modifier) => {
             return current.modifies === "flat" ? (total += current.modifier) : total;
         }, 0);
-        const poolModifications = context.modifiers.reduce((total: number, current: Modifier) => {
-            return current.modifies === "dice" ? (total += current.modifier) : total;
-        }, 0);
-
-        this.flatSuccesses = successModifications;
-        this.dicePool = Math.max(poolModifications, 0);
     }
 
-    async evaluate(): Promise<this> {
-        const formula = `${this.dicePool}d6`;
-        const roll = await new Roll(formula).evaluate();
+    get poolModifications() {
+        return this.context.modifiers.reduce((total: number, current: Modifier) => {
+            return current.modifies === "dice" ? (total += current.modifier) : total;
+        }, 0);
+    }
 
-        this.results =
-            roll.dice.flatMap((die) => {
-                {
-                    return die.results.map((results) => {
-                        return results.result;
-                    });
-                }
-            }) ?? ([] as number[]);
+    get dicePool() {
+        return Math.max(this.poolModifications, 0);
+    }
 
-        const successThreshold = this.skill.trained ? 4 : 5;
+    get successThreshold() {
+        return 4;
+    }
 
-        const pushes = this.results.filter((r) => r === 6).length;
-        const successes = this.results.filter((r) => r >= successThreshold).length;
-        const failures = this.results.filter((r) => r < successThreshold).length;
-        const pulls = this.results.filter((r) => r === 1).length;
-        this.diceSuccessCounts = {
-            pushes,
-            successes,
-            failures,
-            pulls,
-        };
+    async getRoll(): Promise<void> {
+        try {
+            if (this.dicePool === undefined || this.dicePool === null) throw Error("No dice pool found");
+            const formula = `${this.dicePool}d6`;
+            this.roll = await new Roll(formula).evaluate();
 
-        this.rolledNetSuccesses = successes + 2 * pushes - pulls + this.flatSuccesses;
-        this.successesAfterDV = this.rolledNetSuccesses - (this.dv ?? 0);
+            this.results =
+                this.roll.dice.flatMap((die) => {
+                    {
+                        return die.results.map((results) => {
+                            return results.result;
+                        });
+                    }
+                }) ?? ([] as number[]);
 
-        this.pass = this.successesAfterDV >= 1;
+            const pushes = this.results.filter((r) => r === 6).length;
+            const successes = this.results.filter((r) => r >= this.successThreshold).length;
+            const failures = this.results.filter((r) => r < this.successThreshold).length;
+            const pulls = this.results.filter((r) => r === 1).length;
+            this.diceTiers = {
+                pushes,
+                successes,
+                failures,
+                pulls,
+            };
+
+            this.rawSuccesses = successes + 2 * pushes - pulls + this.successModifications;
+        } catch (error) {
+            ui.notifications.error("No dice pool found");
+        }
+    }
+
+    abstract evaluate(): Promise<this>;
+
+    abstract toMessage(): Promise<ChatMessage | null>;
+}
+
+export class SkillTestRoll extends TestRoll<SkillTestContext> {
+    declare netSuccesses: number;
+    declare pass: boolean;
+    declare successLevel: number;
+
+    override get successThreshold() {
+        return this.context.skill?.trained ? 4 : 5;
+    }
+
+    get isCriticalFailure() {
+        return this.netSuccesses <= -4;
+    }
+
+    override async evaluate(): Promise<this> {
+        await this.getRoll();
+
+        this.netSuccesses = this.rawSuccesses - (this.context.dv ?? 0);
+
+        this.pass = this.netSuccesses >= 1;
 
         if (this.pass) {
-            this.successLevel = 1 + Math.floor((this.successesAfterDV - 1) / 4);
-            this.isCriticalFailure = false;
+            this.successLevel = 1 + Math.floor((this.netSuccesses - 1) / 4);
         } else {
             this.successLevel = 0;
-
-            this.isCriticalFailure = this.successesAfterDV <= -4;
         }
 
         return this;
     }
 
-    async toMessage() {
+    override async toMessage() {
         const MESSAGE_TEMPLATE = "systems/hexaga/templates/chat/testRoll.hbs";
 
         const hasCriticalSuccess = this.pass && this.successLevel > 1;
         const criticalMultiplier = hasCriticalSuccess ? this.successLevel - 1 : 0;
 
         const chatData = {
-            totalSuccesses: this.successesAfterMods,
-            dv: this.dv,
-            actorId: this.roller.id,
-            itemId: this.item ? this.item.id : null,
-            finalSuccesses: this.successesAfterDV,
+            totalSuccesses: this.rawSuccesses,
+            dv: this.context.dv,
+            actorId: this.context.roller.id,
+            itemId: this.context.item ? this.context.item.id : null,
+            finalSuccesses: this.netSuccesses,
             formula: `${this.dicePool}d6`,
             passed: this.pass,
-            title: this.title,
+            title: this.options.title,
             flavor: this.options.flavor,
             modifierTrace: this.options.traceData,
             diceList: this.results,
-            isCriticalFailuer: this.isCriticalFailure,
+            isCriticalFailure: this.isCriticalFailure,
             successLevel: this.successLevel,
             criticalMulitplier: criticalMultiplier,
-            dealsDamage: this.dealsDamage,
+            dealsDamage: this.context.dealsDamage,
         };
 
-        return await ChatMessage.create({
+        const message = await ChatMessage.create({
             content: await foundry.applications.handlebars.renderTemplate(MESSAGE_TEMPLATE, chatData),
             speaker: ChatMessage.getSpeaker(),
             flags: {
                 hexaga: {
                     rollContext: {
-                        actorId: this.roller.id,
-                        target: this.target,
-                        itemId: this.item ? this.item.id : null,
-                        successesAfterDV: this.successesAfterDV,
+                        actorId: this.context.roller.id,
+                        target: this.context.target,
+                        itemId: this.context.item ? this.context.item.id : null,
+                        successesAfterDV: this.netSuccesses,
                         successLevel: this.successLevel,
                         isCriticalFailure: this.isCriticalFailure,
                         pass: this.pass,
-                        against: this.against,
+                        against: this.context.against,
                     },
                 },
             },
         });
+        if (message) {
+            return message;
+        } else {
+            return null;
+        }
+    }
+}
+
+export class TempoRoll extends TestRoll<TempoContext> {
+    override get dicePool() {
+        const pool = Math.max(super.dicePool, 1);
+        return this.context.roller.fading ? 0 : pool;
+    }
+
+    override async evaluate() {
+        await this.getRoll();
+        return this;
+    }
+
+    override async toMessage() {
+        const MESSAGE_TEMPLATE = "systems/hexaga/templates/chat/tempoRoll.hbs";
+
+        const chatData = {
+            totalSuccesses: this.rawSuccesses,
+            actorId: this.context.roller.id,
+            formula: `${this.dicePool}d6`,
+            title: this.options.title,
+            flavor: this.options.flavor,
+            modifierTrace: this.options.traceData,
+            diceList: this.results,
+        };
+
+        const message = await ChatMessage.create({
+            content: await foundry.applications.handlebars.renderTemplate(MESSAGE_TEMPLATE, chatData),
+            speaker: ChatMessage.getSpeaker(),
+            flags: {
+                hexaga: {
+                    rollContext: {
+                        actorId: this.context.roller.id,
+                    },
+                },
+                core: {
+                    initiativeRoll: true,
+                },
+            },
+        });
+        if (message) {
+            return message;
+        } else {
+            return null;
+        }
     }
 }
 

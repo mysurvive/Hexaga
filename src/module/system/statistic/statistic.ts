@@ -62,7 +62,17 @@ export abstract class BaseStatistic<TActor extends ActorHex> {
 
 // The child class that contains rollable data. HitPointStatistic and ResistanceValueStatistic
 // don't have rollable data, so there needs to be an extra layer of abstraction
-abstract class Statistic extends BaseStatistic<ActorHex> {}
+export abstract class Statistic extends BaseStatistic<ActorHex> {
+    get breakdown() {
+        return this.getModifierList()
+            .map((mod) => `${mod.modifier >= 0 ? "+" : ""} ${mod.modifier} (${mod.label})`)
+            .join(", ");
+    }
+
+    get total() {
+        return this.getModifierValue();
+    }
+}
 
 export class SkillStatistic extends Statistic {
     declare rank: number;
@@ -90,21 +100,12 @@ export class SkillStatistic extends Statistic {
         return this.trained ? this.attributeRank + this.rank : 1;
     }
 
-    get total() {
-        return this.getModifierValue();
-    }
-
-    get breakdown() {
-        return this.getModifierList()
-            .map((mod) => `${mod.modifier >= 0 ? "+" : ""} ${mod.modifier} (${mod.label})`)
-            .join(", ");
-    }
-
     protected override getBaseModifiers(rollOptions?: string[]): Modifier[] {
         const baseMods: Modifier[] = [];
 
         if (this.trained) {
-            if (this.attributeRank !== undefined) {
+            // As of right now, only hero actor types add their attribute. NPCs are more free-form
+            if (this.attributeRank !== undefined && this.actor.type === "hero") {
                 baseMods.push(
                     new Modifier({
                         slug: this.attribute,
@@ -171,7 +172,7 @@ export class ResistanceValueStatistic extends BaseStatistic<ActorHex> {
         super(actor, data);
 
         this.attributes = data.attributes;
-        this.domains = ["all", "rv", data.slug];
+        this.domains = ["all", "rv", `${data.slug}-rv`, data.slug];
     }
 
     get base() {

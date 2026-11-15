@@ -1,7 +1,6 @@
 import { HeroData } from "./module/actor/hero/heroData.ts";
 import { ItemHex } from "./module/item/base/base.ts";
 import { HeritageData } from "./module/item/character-options/heritage/data.ts";
-
 import { registerHandlebarsHelpers } from "./scripts/register-handlebars-helpers.ts";
 import { registerSheets } from "./scripts/register-sheets.ts";
 import { registerTemplates } from "./scripts/register-templates.ts";
@@ -14,6 +13,8 @@ import { AspectNodeData } from "./module/item/character-options/aspect/aspectNod
 import { WeaponData } from "./module/item/equipment/weapon/weaponData.ts";
 import { registerHooks } from "./scripts/register-hooks.ts";
 import { ArmorData } from "./module/item/equipment/armor/armorData.ts";
+import { NPCData } from "./module/actor/npc/npcData.ts";
+import { CombatHex } from "./module/system/combat/combatHex.ts";
 
 Hooks.on("init", () => {
     registerSheets();
@@ -23,7 +24,10 @@ Hooks.on("init", () => {
 
     CONFIG.hexaga = HEXAGACONFIG;
 
-    CONFIG.Actor.dataModels["hero"] = HeroData;
+    Object.assign(CONFIG.Actor.dataModels, {
+        hero: HeroData,
+        npc: NPCData,
+    });
     Object.assign(CONFIG.Item.dataModels, {
         heritage: HeritageData,
         profession: ProfessionData,
@@ -35,4 +39,5 @@ Hooks.on("init", () => {
 
     CONFIG.Actor.documentClass = ActorHex;
     CONFIG.Item.documentClass = ItemHex;
+    CONFIG.Combat.documentClass = CombatHex;
 });

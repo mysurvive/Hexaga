@@ -1,13 +1,13 @@
-import { HEXAGACONFIG } from "../../../config/index.ts";
-import { AttackStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
+import { AttackStatistic, ResistanceValueStatistic } from "../../system/statistic/statistic.ts";
 import { HitpointStatistic } from "../../system/statistic/hitpointStatistic.ts";
 import { ATTRIBUTE_GROUP_MAPS, ATTRIBUTE_STRINGS, SKILL_STRINGS } from "../foundation.ts";
-import { ActorHexData } from "../base/baseActorData.ts";
 import { ItemHex } from "../../item/base/base.ts";
 import { AspectData } from "../../item/character-options/aspect/aspectData.ts";
 import { Modifier } from "../../system/modifier/modifier.ts";
+import { CharacterHexData } from "../character/characterData.ts";
+import { TempoStatistic } from "../../system/statistic/tempoStatistic.ts";
 
-export class HeroData extends ActorHexData<HeroSchema> {
+export class HeroData extends CharacterHexData<HeroSchema> {
     static override defineSchema(): HeroSchema {
         return defineHeroSchema();
     }
@@ -48,7 +48,6 @@ export class HeroData extends ActorHexData<HeroSchema> {
         super.prepareDerivedData();
 
         // Clear Memory
-        this.parent.skills = {};
         this.parent.expertise = [];
         this.parent.rv = {};
         this.parent.intrinsics = {};
@@ -56,17 +55,6 @@ export class HeroData extends ActorHexData<HeroSchema> {
 
         this.options.heritage = this.heritage ?? null;
         this.options.profession = this.profession ?? null;
-
-        // Create Skill Statistics
-        const skillsConfig = CONFIG.hexaga?.skills ?? HEXAGACONFIG.skills;
-        if (skillsConfig) {
-            for (const [skill, _config] of Object.entries(skillsConfig)) {
-                this.parent.skills[skill] = new SkillStatistic(this.parent, {
-                    slug: skill,
-                    rank: this.skills[skill as keyof typeof this.skills].rank,
-                });
-            }
-        }
 
         this.parent.expertise = this.getExpertise().sort((a, b) => a.value.localeCompare(b.value));
         for (const exp of this.parent.expertise) {
@@ -102,16 +90,10 @@ export class HeroData extends ActorHexData<HeroSchema> {
         this.parent.intrinsics.speed = baseSpeed + speedBonus;
 
         //    Tempo
-        const baseTempo = this.attributes.deftness.rank + this.attributes.acumen.rank;
-        const tempoDomainModifiers = this.parent.synthetics.modifiers["tempo"] ?? [];
-        const tempoModifiers = [...allDomainModifiers, ...tempoDomainModifiers];
-        const tempoBonus = tempoModifiers.reduce((sum, mod) => {
-            const modifier = mod();
-            if (!modifier) return sum;
-            return sum + modifier.modifier;
-        }, 0);
-
-        this.parent.intrinsics.tempo = Math.max(baseTempo + tempoBonus, 1);
+        this.parent.intrinsics.tempo = new TempoStatistic(this.parent, {
+            attributes: ["acumen", "deftness"],
+            slug: "tempo",
+        });
 
         // Defense
         //     RVs
@@ -181,7 +163,7 @@ export class HeroData extends ActorHexData<HeroSchema> {
         });
     }
 
-    _onCreateDescendantDocuments(...args: Actor.OnCreateDescendantDocumentsArgs): void {
+    override _onCreateDescendantDocuments(...args: Actor.OnCreateDescendantDocumentsArgs): void {
         const [_parent, _collection, documents] = args;
 
         if (!documents || !documents.length) return;
@@ -192,7 +174,7 @@ export class HeroData extends ActorHexData<HeroSchema> {
         }
     }
 
-    async _onUpdateDescendantDocuments(...args: Actor.OnUpdateDescendantDocumentsArgs): Promise<void> {
+    override async _onUpdateDescendantDocuments(...args: Actor.OnUpdateDescendantDocumentsArgs): Promise<void> {
         const [_parent, collection, documents] = args;
 
         if (collection !== "items" || !documents || !documents.length) return;
@@ -220,7 +202,7 @@ export class HeroData extends ActorHexData<HeroSchema> {
         }
     }
 
-    async _onDeleteDescendantDocuments(...args: Actor.OnDeleteDescendantDocumentsArgs): Promise<void> {
+    override async _onDeleteDescendantDocuments(...args: Actor.OnDeleteDescendantDocumentsArgs): Promise<void> {
         const [_parent, collection, documents] = args;
 
         if (collection !== "items" || !documents || !documents.length) return;
@@ -366,11 +348,16 @@ export class HeroData extends ActorHexData<HeroSchema> {
 
 const defineHeroSchema = () => {
     return {
-        ...ActorHexData.defineSchema(),
+        ...CharacterHexData.defineSchema(),
         level: new fields.NumberField({ nullable: false, required: true, initial: 1 }),
         options: new fields.SchemaField({
             heritage: new fields.EmbeddedDataField(ItemHex, { nullable: true, persisted: false }),
             profession: new fields.EmbeddedDataField(ItemHex, { nullable: true, persisted: false }),
+        }),
+        intrinsic: new fields.SchemaField({
+            hp: new fields.SchemaField({
+                current: new fields.NumberField({ required: true, nullable: false, initial: 10 }),
+            }),
         }),
         improvements: new fields.SchemaField({
             attributes: new fields.TypedObjectField(
@@ -400,4 +387,4 @@ const defineValueSlugModel = () => {
 
 type ValueSlugModelSchema = ReturnType<typeof defineValueSlugModel>;
 
-type HeroSchema = ReturnType<typeof defineHeroSchema>;
+export type HeroSchema = ReturnType<typeof defineHeroSchema>;

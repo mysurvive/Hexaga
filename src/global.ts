@@ -1,6 +1,8 @@
 import { HEXAGACONFIG } from "./config/index.ts";
 import { ActorHex } from "./module/actor/base/baseActor.ts";
-import { HeroData } from "./module/actor/hero/heroData.ts";
+import { CharacterHexData } from "./module/actor/character/characterData.ts";
+import { HeroSchema } from "./module/actor/hero/heroData.ts";
+import { NPCSchema } from "./module/actor/npc/npcData.ts";
 import { ItemHex } from "./module/item/base/base.ts";
 import { AspectData } from "./module/item/character-options/aspect/aspectData.ts";
 import { AspectNodeData } from "./module/item/character-options/aspect/aspectNodeData.ts";
@@ -8,6 +10,7 @@ import { HeritageData } from "./module/item/character-options/heritage/data.ts";
 import { ProfessionData } from "./module/item/character-options/profession/data.ts";
 import { ArmorData } from "./module/item/equipment/armor/armorData.ts";
 import { WeaponData } from "./module/item/equipment/weapon/weaponData.ts";
+import { CombatHex } from "./module/system/combat/combatHex.ts";
 
 declare global {
     namespace globalThis {
@@ -40,6 +43,7 @@ declare module "fvtt-types/configuration" {
     interface DocumentClassConfig {
         Actor: typeof ActorHex;
         Item: typeof ItemHex;
+        Combat: typeof CombatHex;
     }
     interface ConfiguredActor<SubType extends Actor.SubType> extends ActorHex<SubType> {
         document: ActorHex<SubType>;
@@ -49,7 +53,8 @@ declare module "fvtt-types/configuration" {
     }
     interface DataModelConfig {
         Actor: {
-            hero: typeof HeroData;
+            hero: typeof CharacterHexData<HeroSchema>;
+            npc: typeof CharacterHexData<NPCSchema>;
         };
         Item: {
             heritage: typeof HeritageData;

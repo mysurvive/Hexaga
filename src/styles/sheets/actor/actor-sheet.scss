@@ -33,7 +33,8 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
 
-            #current-hp {
+            #current-hp,
+            #max-hp {
                 width: 40px;
             }
         }

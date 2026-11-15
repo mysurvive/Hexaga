@@ -1,6 +1,8 @@
 import { SvelteComponent } from "svelte";
 import RollDialogShell from "./components/RollDialogShell.svelte";
 import { DamageRollContext, RollArgs, TestRollContext } from "../dice/roller.ts";
+import { SkillStatistic } from "../statistic/statistic.ts";
+import { ItemHex } from "../../item/base/base.ts";
 
 export class RollDialog<TContext extends RollDialogContext = RollDialogContext>
     extends foundry.applications.api.ApplicationV2
@@ -48,7 +50,7 @@ export class RollDialog<TContext extends RollDialogContext = RollDialogContext>
                 props: {
                     actor: this.context.roller,
                     modifiers: this.context.modifiers,
-                    skill: this.context.skill,
+                    skill: this.context.skill ?? undefined,
                     item: this.context.item ?? undefined,
                     onConfirm: (finalContext: TContext) => this.submitRoll(finalContext),
                 },
@@ -79,6 +81,6 @@ export class RollDialog<TContext extends RollDialogContext = RollDialogContext>
     }
 }
 
-export type RollDialogContext = TestRollContext | DamageRollContext;
+export type RollDialogContext = (TestRollContext & { skill?: SkillStatistic; item?: ItemHex }) | DamageRollContext;
 
 export interface RollDialogArgs {}

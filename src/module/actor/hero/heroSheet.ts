@@ -2,6 +2,7 @@ import { SvelteComponent } from "svelte";
 import HeroShell from "./components/HeroShell.svelte";
 import { ItemHex } from "../../item/base/base.ts";
 import { DeepPartial } from "fvtt-types/utils";
+import { ActorHex } from "../base/baseActor.ts";
 
 export class HeroSheet extends foundry.applications.sheets.ActorSheetV2 {
     private svelteComponent: SvelteComponent | null = null;
@@ -9,6 +10,10 @@ export class HeroSheet extends foundry.applications.sheets.ActorSheetV2 {
 
     public activeTab: string = "character";
     public currentLevelContext: number = this.document.system.level;
+
+    override get document(): ActorHex<"hero"> {
+        return super.document as ActorHex<"hero">;
+    }
 
     static override DEFAULT_OPTIONS = {
         classes: ["hexaga", "sheet", "actor"],

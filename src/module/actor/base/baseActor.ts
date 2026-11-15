@@ -15,6 +15,7 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
     declare hp: HitpointStatistic;
     declare expertise: ValueSlugModel[];
     declare maneuvers: AttackStatistic[];
+    public fading: boolean = false;
     public wornArmor: ItemHex<"armor"> | undefined = undefined;
     public rules: AnyRuleElement[] = [];
 
@@ -91,6 +92,8 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
 
     override prepareDerivedData(): void {
         super.prepareDerivedData();
+
+        this.fading = this.hp.current === 0;
 
         this.wornArmor = this.itemTypes.armor.filter((a) => a.system.equipped === true)[0];
         this.system.rollOptions.all[`self:armored`] = this.wornArmor !== undefined;

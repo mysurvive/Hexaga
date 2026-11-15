@@ -1,19 +1,20 @@
 {
     "hexaga": {
         "actor": {
-            "hero": {
-                "sheet": {
-                    "tabs": {
-                        "character": "Character",
-                        "items": "Items",
-                        "aspects": "Aspects",
-                        "spells": "Spells",
-                        "improvements": "Improvements",
-                        "maneuvers": "Maneuvers"
-                    }
+            "hero": {},
+            "sheet": {
+                "tabs": {
+                    "character": "Character",
+                    "items": "Items",
+                    "aspects": "Aspects",
+                    "spells": "Spells",
+                    "improvements": "Improvements",
+                    "maneuvers": "Maneuvers",
+                    "effects": "Effects"
                 }
             }
         },
+
         "attributeGroups": {
             "physical": {
                 "label": "Physical"
@@ -123,7 +124,8 @@
     },
     "TYPES": {
         "Actor": {
-            "hero": "Hero"
+            "hero": "Hero",
+            "npc": "NPC"
         },
         "Item": {
             "heritage": "Heritage",

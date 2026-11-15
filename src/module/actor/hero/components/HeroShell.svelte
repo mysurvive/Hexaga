@@ -2,13 +2,14 @@
     import { writable } from "svelte/store";
     import TabCharacter from "./tabs/TabCharacter.svelte";
     import TabManeuvers from "./tabs/TabManeuvers.svelte";
-    import TabItems from "./tabs/TabItems.svelte";
-    import TabSpells from "./tabs/TabSpells.svelte";
+    import TabItems from "../../components/tabs/TabItems.svelte";
+    import TabSpells from "../../components/tabs/TabSpells.svelte";
     import TabAspects from "./tabs/TabAspects.svelte";
     import TabImprovements from "./tabs/TabImprovements.svelte";
     import { HeroSheet } from "../HeroSheet.ts";
     import { setContext } from "svelte";
     import { ActorHex } from "../../base/baseActor.ts";
+    import { updateActorFromInput } from "../../components/helpers.ts";
 
     export let actor: ActorHex;
     export let sheetData: HeroSheet;
@@ -21,17 +22,6 @@
         return game.i18n.localize(key);
     }
 
-    async function updateActorFromInput(path: string, event: Event): Promise<void> {
-        const input = event.currentTarget as HTMLInputElement;
-        const value = input.value;
-
-        try {
-            await actor.update({ [path]: value });
-        } catch (error) {
-            console.error("Unable to update Actor", error);
-        }
-    }
-
     const tabConfig = [
         { id: "character" },
         { id: "maneuvers" },
@@ -39,6 +29,7 @@
         { id: "spells" },
         { id: "aspects" },
         { id: "improvements" },
+        { id: "effects" },
     ];
 
     let activeTab = "character";
@@ -59,7 +50,7 @@
                         id="character-name"
                         value={actor.name}
                         on:change={(e) => {
-                            updateActorFromInput("name", e);
+                            updateActorFromInput(actor, "name", e);
                         }}
                     />
                 </div>
@@ -105,7 +96,7 @@
                         type="number"
                         id="level-input"
                         value={actor.system.level}
-                        on:change={(e) => updateActorFromInput("system.level", e)}
+                        on:change={(e) => updateActorFromInput(actor, "system.level", e)}
                     />
                 </div>
             </div>
@@ -122,7 +113,7 @@
                         sheetData.activeTab = activeTab;
                     }}
                 >
-                    <label for={tab.id}>{_loc(`hexaga.actor.hero.sheet.tabs.${tab.id}`)}</label>
+                    <label for={tab.id}>{_loc(`hexaga.actor.sheet.tabs.${tab.id}`)}</label>
                 </a>
             {/each}
         </nav>
