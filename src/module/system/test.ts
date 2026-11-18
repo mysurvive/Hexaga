@@ -10,6 +10,7 @@ export class Test {
     declare domains;
     declare rollOptions;
     declare skill;
+    declare group;
     declare item;
     declare dv;
     declare roller;
@@ -24,6 +25,7 @@ export class Test {
         this.domains = context.domains;
         this.rollOptions = context.rollOptions;
         this.skill = context.skill;
+        this.group = context.group;
         this.item = context.item;
         this.dv = context.dv;
         this.type = context.type;
@@ -45,7 +47,9 @@ export class Test {
             ? this.skill.getModifierList(this.domains, activeRollOptions)
             : this.type === "tempo"
               ? this.roller.intrinsics.tempo.getModifierList(this.domains, activeRollOptions)
-              : [];
+              : this.type === "resist" && this.group
+                ? this.roller.resist[this.group].getModifierList()
+                : [];
 
         if (this.mmp < 0) {
             modifiers.push(
@@ -85,7 +89,7 @@ export class Test {
     }
 
     async roll(args: RollArgs = {}): Promise<TestRoll<TestRollContext> | undefined> {
-        const label = this.skill ? this.skill.label : this.type === "tempo" ? "Tempo" : undefined;
+        const label = this.skill ? this.skill.label : this.type;
 
         if (label) {
             args.title = args.title
@@ -113,6 +117,7 @@ export class Test {
 const ROLL_TYPE: Record<string, new (context: TestRollContext, args: RollArgs) => TestRoll> = {
     test: SkillTestRoll,
     tempo: TempoRoll,
+    resist: SkillTestRoll,
 };
 
 export interface TestContext {
@@ -123,7 +128,8 @@ export interface TestContext {
     domains: string[];
     rollOptions: string[];
     skill?: SkillStatistic;
-    type: "attack" | "test" | "tempo";
+    group?: "physical" | "mental" | "personality";
+    type: "attack" | "test" | "tempo" | "resist";
     mmp?: number;
     dealsDamage?: boolean;
     against?: "physical" | "mental" | "personality";

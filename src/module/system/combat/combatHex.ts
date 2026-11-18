@@ -4,7 +4,7 @@ import { TempoRoll } from "../dice/roller.ts";
 export class CombatHex extends Combat {
     override async rollInitiative(ids: MaybeArray<string>, options?: Combat.InitiativeOptions): Promise<this> {
         const idList = typeof ids === "string" ? [ids] : ids;
-        const updates = [];
+        const updates: Combatant.UpdateData[] = [];
         const rollAll = idList.length > 1;
 
         for (const id of idList) {

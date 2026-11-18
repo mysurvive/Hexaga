@@ -4,20 +4,23 @@
     export let actor;
     export let slug;
     export let attribute;
+    export let editing;
 </script>
 
 <div class="attribute">
     <label class="attribute-label" for={slug}>{window.game.i18n.localize(`hexaga.attributes.${slug}.label`)}</label>
-    <input
-        type="number"
-        id={slug}
-        value={attribute.rank}
-        on:change={(e) => {
-            updateActorFromInput(actor, `system.attributes.${slug}.rank`, e);
-        }}
-    />
-    -
-    {attribute.rank + attribute.mod}
+    {#if editing}
+        <input
+            type="number"
+            id={slug}
+            value={attribute.rank}
+            on:change={(e) => {
+                updateActorFromInput(actor, `system.attributes.${slug}.rank`, e);
+            }}
+        />
+    {:else}
+        {attribute.rank + attribute.mod}
+    {/if}
 </div>
 
 <style lang="scss">

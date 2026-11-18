@@ -1,6 +1,7 @@
 <script>
     import { updateActorFromInput } from "../../../components/helpers.ts";
     export let actor;
+    export let editing;
 
     $: hitpoints = actor.hp;
 </script>
@@ -11,12 +12,25 @@
     <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <div
         class="flex-row clickable"
-        on:click={() => {
-            actor.intrinsics.tempo.roll();
+        on:click={(e) => {
+            editing ? null : actor.intrinsics.tempo.roll();
         }}
     >
         <i class="fa-solid fa-person-running med" />
-        <span class="label-normal uppercase">Tempo {actor.intrinsics.tempo.total}</span>
+        <span class="label-normal uppercase">Tempo</span>
+        {#if editing}
+            <input
+                type="number"
+                value={actor.intrinsics.tempo.total}
+                on:change={(e) => {
+                    updateActorFromInput(actor, "system.intrinsic.tempo.total", e);
+                }}
+            />
+        {:else}
+            <span>
+                {actor.intrinsics.tempo.total}
+            </span>
+        {/if}
     </div>
 
     <div class="movement-container">
@@ -53,14 +67,18 @@
             <div>
                 <label for="max-hp" class="label-thin center uppercase"> Maximum </label>
                 <div class="value-container">
-                    <input
-                        type="number"
-                        id="max-hp"
-                        value={actor.hp.max}
-                        on:change={async (e) => {
-                            await updateActorFromInput(actor, "system.intrinsic.hp.max", e);
-                        }}
-                    />
+                    {#if editing}
+                        <input
+                            type="number"
+                            id="max-hp"
+                            value={actor.hp.max}
+                            on:change={async (e) => {
+                                await updateActorFromInput(actor, "system.intrinsic.hp.max", e);
+                            }}
+                        />
+                    {:else}
+                        <span class="value">{actor.system.intrinsic.hp.max} </span>
+                    {/if}
                 </div>
             </div>
         </div>
@@ -72,7 +90,18 @@
             <div>
                 <label for="armor-ablation" class="label-thin center uppercase"> Armor </label>
                 <div class="value-container">
-                    <input type="number" id="armor-ablation" on:change={async (e) => {}} />
+                    {#if editing}
+                        <input
+                            type="number"
+                            id="armor-ablation"
+                            value={actor.system.ablation.armor.base}
+                            on:change={async (e) => {
+                                await updateActorFromInput(actor, "system.ablation.armor.base", e);
+                            }}
+                        />
+                    {:else}
+                        <span class="value">{actor.wornArmor.ablation.base} </span>
+                    {/if}
                 </div>
             </div>
             <div>
@@ -128,40 +157,111 @@
             <div>
                 <label for="physical-rv" class="label-thin center uppercase"> Physical </label>
                 <div class="value-container">
-                    <input type="number" id="physical-rv" on:change={async (e) => {}} />
+                    {#if editing}
+                        <input
+                            type="number"
+                            id="physical-rv"
+                            on:change={async (e) => {
+                                updateActorFromInput(actor, "system.rv.physical.base", e);
+                            }}
+                            value={actor.system.rv.physical.base}
+                        />
+                    {:else}
+                        <span class="value">{actor.rv.physical.total}</span>
+                    {/if}
                 </div>
             </div>
             <div>
                 <label for="mental-rv" class="label-thin center uppercase"> Mental </label>
                 <div class="value-container">
-                    <input type="number" id="mental-rv" on:change={async (e) => {}} />
+                    {#if editing}
+                        <input
+                            type="number"
+                            id="mental-rv"
+                            on:change={async (e) => {
+                                updateActorFromInput(actor, "system.rv.mental.base", e);
+                            }}
+                            value={actor.system.rv.mental.base}
+                        />
+                    {:else}
+                        <span class="value">{actor.rv.mental.total}</span>
+                    {/if}
                 </div>
             </div>
             <div>
                 <label for="personality-rv" class="label-thin center uppercase"> Personality </label>
                 <div class="value-container">
-                    <input type="number" id="personality-rv" on:change={async (e) => {}} />
+                    {#if editing}
+                        <input
+                            type="number"
+                            id="personality-rv"
+                            on:change={async (e) => {
+                                updateActorFromInput(actor, "system.rv.personality.base", e);
+                            }}
+                            value={actor.system.rv.personality.base}
+                        />
+                    {:else}
+                        <span class="value">{actor.rv.personality.total}</span>
+                    {/if}
                 </div>
             </div>
         </div>
         <span class="label-thin center border uppercase"> Resist </span>
+        <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+
         <div class="values">
-            <div>
-                <label for="physical-resist" class="label-thin center clickable uppercase"> Physical </label>
+            <div
+                class={editing ? "" : "clickable"}
+                on:click={editing ? null : actor.resist.physical.roll({ label: "Resist: Physical" })}
+            >
+                <label for="physical-resist" class="label-thin center uppercase"> Physical </label>
                 <div class="value-container">
-                    <input type="number" id="physical-resist" on:change={async (e) => {}} />
+                    {#if editing}
+                        <input
+                            type="number"
+                            id="physical-resist"
+                            on:change={async (e) => {
+                                updateActorFromInput(actor, "system.resist.physical.base", e);
+                            }}
+                            value={actor.system.resist.physical.base}
+                        />
+                    {:else}
+                        <span class="value">{actor.resist.physical.total}</span>
+                    {/if}
                 </div>
             </div>
-            <div>
-                <label for="mental-resist" class="label-thin center clickable uppercase"> Mental </label>
+            <div class={editing ? "" : "clickable"} on:click={editing ? null : actor.resist.mental.roll()}>
+                <label for="mental-resist" class="label-thin center uppercase"> Mental </label>
                 <div class="value-container">
-                    <input type="number" id="mental-resist" on:change={async (e) => {}} />
+                    {#if editing}
+                        <input
+                            type="number"
+                            id="mental-resist"
+                            on:change={async (e) => {
+                                updateActorFromInput(actor, "system.resist.mental.base", e);
+                            }}
+                            value={actor.system.resist.mental.base}
+                        />
+                    {:else}
+                        <span class="value">{actor.resist.mental.total}</span>
+                    {/if}
                 </div>
             </div>
-            <div>
-                <label for="personality-resist" class="label-thin center clickable uppercase"> Personality </label>
+            <div class={editing ? "" : "clickable"} on:click={editing ? null : actor.resist.physical.roll()}>
+                <label for="personality-resist" class="label-thin center uppercase"> Personality </label>
                 <div class="value-container">
-                    <input type="number" id="personality-resist" on:change={async (e) => {}} />
+                    {#if editing}
+                        <input
+                            type="number"
+                            id="personality-resist"
+                            on:change={async (e) => {
+                                updateActorFromInput(actor, "system.resist.personality.base", e);
+                            }}
+                            value={actor.system.resist.personality.base}
+                        />
+                    {:else}
+                        <span class="value">{actor.resist.personality.total}</span>
+                    {/if}
                 </div>
             </div>
         </div>
@@ -197,6 +297,11 @@
         border-bottom: 1px solid white;
         border-right: 1px solid white;
 
+        > div {
+            flex: 1 1 50%;
+            min-width: 0;
+        }
+
         .sub {
             border: none;
 
@@ -211,23 +316,19 @@
 
         .value-container {
             padding: 0px 10px 10px 10px;
+            justify-self: center;
         }
 
-        input {
+        input,
+        .value {
             background: none;
             justify-items: center;
             font-size: 2em;
         }
-    }
 
-    .clickable {
-        pointer-events: auto;
-
-        &:hover {
-            text-shadow:
-                0px 0px 4px orange,
-                0px 0px 10px orange,
-                0px 0px 15px orange;
+        input {
+            width: 100%;
+            min-width: 0;
         }
     }
 
@@ -256,5 +357,11 @@
 
     .uppercase {
         text-transform: uppercase;
+    }
+
+    .flex-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
     }
 </style>

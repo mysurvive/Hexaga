@@ -59,9 +59,11 @@
     display: flex;
 }
 .flex-row {
+    display: flex;
     flex-direction: row;
 }
 .flex-col {
+    display: flex;
     flex-direction: column;
 }
 .align-center {
@@ -95,6 +97,16 @@
     margin: 5px;
     hr {
         margin-top: 0px;
+    }
+}
+.clickable {
+    pointer-events: auto;
+
+    &:hover {
+        text-shadow:
+            0px 0px 4px orange,
+            0px 0px 10px orange,
+            0px 0px 15px orange;
     }
 }
 

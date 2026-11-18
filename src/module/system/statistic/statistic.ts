@@ -1,6 +1,5 @@
 import { TestContext } from "../test.ts";
 import { ActorHex } from "../../actor/base/baseActor.ts";
-import { Attributes } from "../../actor/types.ts";
 import { ItemHex } from "../../item/base/base.ts";
 import { Modifier } from "../modifier/modifier.ts";
 import { Test } from "../test.ts";
@@ -25,12 +24,19 @@ export abstract class BaseStatistic<TActor extends ActorHex> {
         this.slug = data.slug;
     }
 
-    protected getBaseModifiers(rollOptions?: string[]): Modifier[] {
+    protected getBaseModifiers(): Modifier[] {
         return [];
     }
 
     getModifierList(domains?: string[], rollOptions?: string[]): Modifier[] {
-        const deduplicatedModifiers: Modifier[] = [...this.getBaseModifiers(rollOptions)];
+        const modifierMap = new Map<string, Modifier>();
+
+        for (const baseMod of this.getBaseModifiers()) {
+            const existing = modifierMap.get(baseMod.slug);
+            if (!existing || baseMod.modifier > existing.modifier) {
+                modifierMap.set(baseMod.slug, baseMod);
+            }
+        }
 
         const activeDomains = domains ?? this.domains;
 
@@ -40,23 +46,27 @@ export abstract class BaseStatistic<TActor extends ActorHex> {
             for (const modifier of modifiers) {
                 const m = modifier(rollOptions);
                 if (!m) continue;
-                if (deduplicatedModifiers.some((mod) => mod.slug === m.slug)) {
-                    continue;
-                }
 
-                deduplicatedModifiers.push(m);
+                const existing = modifierMap.get(m.slug);
+                if (!existing || m.modifier > existing.modifier) {
+                    modifierMap.set(m.slug, m);
+                }
             }
         }
 
-        return deduplicatedModifiers;
+        return Array.from(modifierMap.values());
     }
 
     getModifierValue(rollOptions?: string[]): number {
-        const modifier = this.getModifierList(rollOptions).reduce((sum, modifier) => {
-            return sum + modifier.modifier;
-        }, 0);
+        return Math.floor(this.getSpecificModifierValue(this.getModifierList(rollOptions)));
+    }
 
-        return modifier;
+    getSpecificModifierValue(modifiers: Modifier[]): number {
+        return Math.floor(
+            modifiers.reduce((sum, modifier) => {
+                return sum + modifier.modifier;
+            }, 0),
+        );
     }
 }
 
@@ -100,7 +110,7 @@ export class SkillStatistic extends Statistic {
         return this.trained ? this.attributeRank + this.rank : 1;
     }
 
-    protected override getBaseModifiers(rollOptions?: string[]): Modifier[] {
+    protected override getBaseModifiers(): Modifier[] {
         const baseMods: Modifier[] = [];
 
         if (this.trained) {
@@ -162,29 +172,6 @@ export class SkillStatistic extends Statistic {
             type: "test",
         };
         await new Test(testContext).roll();
-    }
-}
-
-export class ResistanceValueStatistic extends BaseStatistic<ActorHex> {
-    declare attributes: Array<keyof Attributes>;
-
-    constructor(actor: ActorHex, data: { attributes: Array<keyof Attributes>; slug: string }) {
-        super(actor, data);
-
-        this.attributes = data.attributes;
-        this.domains = ["all", "rv", `${data.slug}-rv`, data.slug];
-    }
-
-    get base() {
-        const firstAttribute =
-            this.actor.system.attributes[this.attributes[0] as keyof typeof this.actor.system.attributes].rank;
-        const secondAttribute =
-            this.actor.system.attributes[this.attributes[1] as keyof typeof this.actor.system.attributes].rank;
-        return Math.floor((firstAttribute + secondAttribute) / 2);
-    }
-
-    get total() {
-        return this.base + this.getModifierValue();
     }
 }
 

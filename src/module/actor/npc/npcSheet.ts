@@ -4,6 +4,7 @@ export class NPCSheet extends foundry.applications.sheets.ActorSheetV2 {
     private svelteComponent: SvelteComponent | null = null;
 
     public activeTab: string = "character";
+    public editing: boolean = false;
 
     static override DEFAULT_OPTIONS = {
         classes: ["hexaga", "sheet", "npc"],

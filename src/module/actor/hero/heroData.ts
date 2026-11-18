@@ -1,4 +1,4 @@
-import { AttackStatistic, ResistanceValueStatistic } from "../../system/statistic/statistic.ts";
+import { AttackStatistic } from "../../system/statistic/statistic.ts";
 import { HitpointStatistic } from "../../system/statistic/hitpointStatistic.ts";
 import { ATTRIBUTE_GROUP_MAPS, ATTRIBUTE_STRINGS, SKILL_STRINGS } from "../foundation.ts";
 import { ItemHex } from "../../item/base/base.ts";
@@ -6,6 +6,7 @@ import { AspectData } from "../../item/character-options/aspect/aspectData.ts";
 import { Modifier } from "../../system/modifier/modifier.ts";
 import { CharacterHexData } from "../character/characterData.ts";
 import { TempoStatistic } from "../../system/statistic/tempoStatistic.ts";
+import { ResistanceValueStatistic } from "../../system/statistic/resistanceValueStatistic.ts";
 
 export class HeroData extends CharacterHexData<HeroSchema> {
     static override defineSchema(): HeroSchema {
@@ -100,14 +101,17 @@ export class HeroData extends CharacterHexData<HeroSchema> {
         this.parent.rv.physical = new ResistanceValueStatistic(this.parent, {
             attributes: ["physique", "deftness"],
             slug: "physical-rv",
+            group: "physical",
         });
         this.parent.rv.mental = new ResistanceValueStatistic(this.parent, {
             attributes: ["wit", "acumen"],
             slug: "mental-rv",
+            group: "mental",
         });
         this.parent.rv.personality = new ResistanceValueStatistic(this.parent, {
             attributes: ["will", "ego"],
             slug: "personality-rv",
+            group: "personality",
         });
 
         // Calculate Hitpoints

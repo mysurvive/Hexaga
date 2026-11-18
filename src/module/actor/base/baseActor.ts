@@ -1,22 +1,26 @@
 import { ItemHex } from "../../item/base/base.ts";
 import { ApplyDamageContext } from "../../system/dice/roller.ts";
 import { RulesEngine } from "../../system/ruleElement/rulesEngine.ts";
-import { AttackStatistic, ResistanceValueStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
+import { AttackStatistic, SkillStatistic } from "../../system/statistic/statistic.ts";
 import { HitpointStatistic } from "../../system/statistic/hitpointStatistic.ts";
 import { ValueSlugModel } from "../hero/heroData.ts";
 import { ActorSynthetics } from "../synthetics.ts";
 import { AnyRuleElement } from "../../system/ruleElement/types.ts";
+import { ResistanceValueStatistic } from "../../system/statistic/resistanceValueStatistic.ts";
+import { ResistStatistic } from "../../system/statistic/resistStatistic.ts";
+import { AblationStatistic } from "../../system/statistic/ablationStatistic.ts";
 
 export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Actor<SubType> {
     declare public synthetics: ActorSynthetics;
     declare skills: SkillStatisticRecord;
     declare rv: Record<string, ResistanceValueStatistic>;
+    declare resist: Record<string, ResistStatistic>;
     declare intrinsics: Record<string, any>;
     declare hp: HitpointStatistic;
     declare expertise: ValueSlugModel[];
     declare maneuvers: AttackStatistic[];
+    declare wornArmor: { item: ItemHex<"armor"> | undefined; ablation: AblationStatistic | undefined };
     public fading: boolean = false;
-    public wornArmor: ItemHex<"armor"> | undefined = undefined;
     public rules: AnyRuleElement[] = [];
 
     protected override async _preCreate(
@@ -95,10 +99,19 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
 
         this.fading = this.hp.current === 0;
 
-        this.wornArmor = this.itemTypes.armor.filter((a) => a.system.equipped === true)[0];
-        this.system.rollOptions.all[`self:armored`] = this.wornArmor !== undefined;
-        if (this.wornArmor !== undefined) {
-            const armorOptions = this.wornArmor.system.getRollOptions();
+        const wornArmor = this.itemTypes.armor.filter((a) => a.system.equipped === true)[0];
+        const ablation = new AblationStatistic(this, {
+            item: wornArmor,
+            slug: "armor-ablation",
+            domains: [],
+            type: "armor",
+        });
+
+        this.wornArmor = { item: wornArmor, ablation: ablation };
+
+        this.system.rollOptions.all[`self:armored`] = this.wornArmor.item !== undefined;
+        if (this.wornArmor.item !== undefined) {
+            const armorOptions = this.wornArmor.item.system.getRollOptions();
             for (const option of armorOptions) {
                 this.system.rollOptions.all[option] = true;
             }
@@ -110,21 +123,23 @@ export class ActorHex<SubType extends Actor.SubType = Actor.SubType> extends Act
         let durabilityDamage = 0;
 
         if (context.rollType === "damage" && context.against === "physical") {
-            if (!this.wornArmor) {
+            if (!this.wornArmor.item) {
                 totalDamage = -totalDamage;
             } else {
                 durabilityDamage =
                     Math.max(
                         0,
-                        totalDamage < this.wornArmor.system.ablation ? totalDamage : this.wornArmor.system.ablation,
+                        totalDamage < (this.wornArmor.ablation?.total ?? 0)
+                            ? totalDamage
+                            : (this.wornArmor.ablation?.total ?? 0),
                     ) * -1;
                 totalDamage -= durabilityDamage;
                 totalDamage = totalDamage * -1;
-                this.wornArmor.system.modifyDurability(durabilityDamage);
+                this.wornArmor.item.system.modifyDurability(durabilityDamage);
             }
         } else {
         }
-        const chatFlavor = `${this.name}: ${totalDamage} hp. ${this.wornArmor ? `\n ${this.wornArmor.name}: ${durabilityDamage} durability.` : ""}`;
+        const chatFlavor = `${this.name}: ${totalDamage} hp. ${this.wornArmor ? `\n ${this.wornArmor.item?.name ?? "Unarmored"}: ${durabilityDamage} durability.` : ""}`;
         await ChatMessage.create({ flavor: chatFlavor });
         await this.modifyHealth(totalDamage);
     }

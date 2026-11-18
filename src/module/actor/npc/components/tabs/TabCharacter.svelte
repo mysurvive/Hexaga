@@ -3,6 +3,7 @@
     import AttributeEntry from "../parts/AttributeEntry.svelte";
     import TagifyInput from "../../../../shared/components/TagifyInput.svelte";
     export let actor;
+    export let editing;
 </script>
 
 <section class="character-tab">
@@ -10,7 +11,7 @@
         <fieldset class="attribute-field grid-row">
             <legend>Attributes</legend>
             {#each Object.entries(actor.system.attributes).sort(([a], [b]) => a.localeCompare(b)) as [slug, attribute]}
-                <AttributeEntry {actor} {slug} {attribute} />
+                <AttributeEntry {actor} {slug} {attribute} {editing} />
             {/each}
         </fieldset>
         <fieldset class="expertise-field">
@@ -29,7 +30,7 @@
     <fieldset class="grid-row">
         <legend>Skills</legend>
         {#each Object.entries(actor.skills).sort(([a], [b]) => a.localeCompare(b)) as [slug, skill]}
-            <SkillEntry {actor} {slug} {skill} />
+            <SkillEntry {actor} {slug} {skill} {editing} />
         {/each}
     </fieldset>
 </section>

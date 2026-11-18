@@ -9,19 +9,22 @@
     export let sheetData;
 
     $: activeTab = sheetData.activeTab;
-
-    $: console.log(activeTab);
+    $: editing = sheetData.editing;
 
     const tabConfig = [{ id: "character" }, { id: "items" }, { id: "spells" }, { id: "effects" }];
+
+    function toggleEditing() {
+        editing = !editing;
+    }
 </script>
 
 <section class="flex-row">
-    <LeftPanel {actor} />
+    <LeftPanel {actor} {editing} />
     <div class="flex-column">
         <header class="actor-header">
             <img class="character-portrait" src={actor.img} alt="hero portrait" />
             <div class="character-basics">
-                <div>
+                <div class="flex-row gap">
                     <input
                         type="text"
                         id="character-name"
@@ -30,6 +33,9 @@
                             updateActorFromInput(actor, "name", e);
                         }}
                     />
+                    <button class="edit-button" type="button" on:click={(e) => toggleEditing()}>
+                        <i class={editing ? "fa-solid fa-lock-open" : "fa-solid fa-lock"} />
+                    </button>
                 </div>
             </div>
         </header>
@@ -51,7 +57,7 @@
         </nav>
 
         {#if activeTab === "character"}
-            <TabCharacter {actor} />
+            <TabCharacter {actor} {editing} />
         {:else if activeTab === "items"}
             <TabItems {actor} />
         {:else if activeTab === "spells"}
@@ -69,6 +75,9 @@
     .flex-row {
         display: flex;
         flex-direction: row;
+    }
+    .gap {
+        gap: 8px;
     }
     .actor-header {
         display: grid;

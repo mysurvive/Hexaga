@@ -15,12 +15,33 @@ export class TempoStatistic extends Statistic {
         this.attributes = data.attributes;
     }
 
-    override get total() {
-        return Math.max(super.total, this.actor.fading ? 0 : 1);
+    get base() {
+        return "tempo" in this.actor.system.intrinsic
+            ? this.actor.system.intrinsic.tempo.total
+            : this.getSpecificModifierValue(this.getBaseModifiers());
     }
 
-    protected override getBaseModifiers(rollOptions?: string[]): Modifier[] {
+    override get total() {
+        return Math.max(
+            "tempo" in this.actor.system.intrinsic ? this.getModifierValue() : super.total,
+            this.actor.fading ? 0 : 1,
+        );
+    }
+
+    protected override getBaseModifiers(): Modifier[] {
         const baseMods: Modifier[] = [];
+
+        if ("tempo" in this.actor.system.intrinsic) {
+            return [
+                new Modifier({
+                    slug: "npc-tempo",
+                    label: "Tempo",
+                    domains: ["tempo"],
+                    modifies: "dice",
+                    modifier: this.actor.system.intrinsic.tempo.total,
+                }),
+            ];
+        }
 
         for (const attribute of this.attributes) {
             baseMods.push(createAttributeModifier({ actor: this.actor, attribute: attribute, domains: this.domains }));

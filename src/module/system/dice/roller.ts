@@ -15,7 +15,7 @@ export interface RollArgs {
 export interface TestRollContext {
     roller: ActorHex;
     modifiers: Modifier[];
-    rollType: "attack" | "test" | "tempo";
+    rollType: "attack" | "test" | "tempo" | "resist";
 }
 
 export interface SkillTestContext extends TestRollContext {

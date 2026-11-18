@@ -4,28 +4,33 @@
     export let actor;
     export let slug;
     export let skill;
+    export let editing;
 </script>
 
-<div class="skill">
+<div class={editing ? "skill" : "skill clickable"}>
     <!-- svelte-ignore a11y-no-noninteractive-element-interactions a11y-click-events-have-key-events -->
     <label
         class="skill-label"
         for={slug}
         on:click={() => {
             skill.roll();
-        }}>{skill.label}</label
-    >
-    <input
-        type="number"
-        id={slug}
-        value={skill.rank}
-        on:change={(e) => {
-            updateActorFromInput(actor, `system.skills.${slug}.rank`, e);
         }}
-    />
-    -
-    {#if !skill.trained}1*
-    {:else}{skill.total}{/if}
+    >
+        {skill.label}
+    </label>
+    {#if editing}
+        <input
+            type="number"
+            id={slug}
+            value={skill.rank}
+            on:change={(e) => {
+                updateActorFromInput(actor, `system.skills.${slug}.rank`, e);
+            }}
+        />
+    {:else if !skill.trained}1*
+    {:else}
+        {skill.total}
+    {/if}
 </div>
 
 <style lang="scss">
@@ -46,13 +51,6 @@
             min-width: 0;
             white-space: nowrap;
             overflow: hidden;
-
-            &:hover {
-                text-shadow:
-                    0px 0px 4px orange,
-                    0px 0px 10px orange,
-                    0px 0px 15px orange;
-            }
         }
         > input {
             height: 18px;
